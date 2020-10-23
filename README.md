@@ -1,7 +1,7 @@
 # ARBoardGame
 
-Team:
-Petrovici Stefan
-Crainiciuc Stefan Calin
-George Stoica
+Team:\
+Petrovici Stefan\
+Crainiciuc Stefan Calin\
+George Stoica\
 Daria Popovici

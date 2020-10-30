@@ -1,15 +1,42 @@
 # AR board game STATE OF THE ART
 
-### History of AR
+[TOC]
+
+## Our project
+
+During this project we will build a board game with AR technologies using the [Vuforia SDK](https://developer.vuforia.com/) and Unity.
+
+## Motivation
+
+Some board games are based on pure strategy, but many contain an element of chance; and some are purely chance, with no element of skill. There are many varieties of board games. Rules can range from the very simple, to deeply complex.
+
+The board game should be played on a flat surface, and its progress is shared between all players. 
+
+We wanted to pick a multi-player game which is easy to learn, contains an element of chance, has moderately complex mechanics and is competitive. After some consideration, we chose:
+
+## The board game
+
+[Carcassonne](https://boardgamegeek.com/boardgame/822/carcassonne) is one of the most popular tile-placement game. The players may place a tile during their turn, and here comes the competitivity. You can always choose to expand your teritory or ruin your opponent's plan, and maybe strike new alliances or betray. While the game area increases with each placed tile, their owners can place meeples to claim points, having liberty to choose from many options, trying to maximize their advantage while also having to claim chances faster thain their competitors. 
+
+![Carcassonne tiles](https://cf.geekdo-images.com/NojWLs0EBGQpdXq2q4-SSw__imagepagezoom/img/YdXQKSzrRzxzQkDaqP-ZXNQexiY=/fit-in/1200x900/filters:no_upscale():strip_icc()/pic265353.jpg)
+
+
+![Carcassonne mid-game](https://cf.geekdo-images.com/7cEABqlgeBGNJuipYqzDRQ__imagepagezoom/img/CTBR1EuQEAl9ZTemDKff49U5jmk=/fit-in/1200x900/filters:no_upscale():strip_icc()/pic669244.jpg)
+
+## History of AR
 
 You can check here a [short history of AR](https://www.blippar.com/blog/2018/06/08/history-augmented-reality#:~:text=2000%3A%20AR%20Quake%20launched%20%2D%20the%20first%20AR%20game.) but in this document we will focus on AR board games.
 You can also check this [article](https://www.interaction-design.org/literature/article/augmented-reality-the-past-the-present-and-the-future).
 
+## What others do
+
+We will first list some of the games out there to see what is the current industry standard and after that explain what we want to achieve.
+
 ### Tendary 
 
-Tendary claims to be the first AR board game. It was released on December 2018.
+[Tendary](https://tendary.net/team-en) claims to be the first AR board game. It was released on December 2018.
 
-![tendary1](https://pbs.twimg.com/media/Dd0iyNTVwAAK9_L.jpg)
+![tendary_picture](https://pbs.twimg.com/media/Dd0iyNTVwAAK9_L.jpg)
 
 Although Wikipedia claims one of the oldest AR game is [Cybergeneration](https://en.wikipedia.org/wiki/Cybergeneration).
 
@@ -47,7 +74,6 @@ Oracles Game is a team oriented strategy board game with augmented reality featu
 
 ![CivilWarVuforia](https://cf.geekdo-images.com/XYVJXsydVP2Isvf908fsqw__imagepage/img/tN4iS6piQwfsrhj_czdr2JXKEgk=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4411473.jpg)
 
-
 ### Live game board
 
 An example business making AR games is [this](http://www.livegameboard.com/) company. They sell the board on which you can play the game.
@@ -58,6 +84,54 @@ An example business making AR games is [this](http://www.livegameboard.com/) com
 ![Spatial](https://s3-us-west-1.amazonaws.com/comingsoon-tech/project/carousel/Untitled-3_0000_Spatial-JStrutz-052418-0169-1_180806_113347.jpg)
 
 This company started a kickstarter project that featured a device through which you can see the 3d world of the game and also tokens that can be recognized by the software. The project was funded but after that we didn't find any more news.
+
+## What we will do in this project
+
+Our goal is to create an interactable AR board game that can be played on mobile. 
+
+The game we are trying to build has a particular unique mechanic: the board expands with the game. So far most AR boardgames have had a limited space in which the game takes place. This means the users will most likely have a wider play area then most board games.
+
+We will try to research one more topic in our project. We could make our game interactable with hand gestures. Gesture detection libraries are still mostly in development state, and they are quite heavy on CPU usage. We have not reached a point where one of these libraries can provide out-of-the-box functionality for gesture recognition - ARFoundation and Vuforia for example, two of the most known frameworks for developing AR Unity games do not have this functionality (yet). Is it possible to deploy an app that has both multiplayer and a module for hand recognition - feasible on mobile?
+
+## Used methods
+
+We will try to detect a surface or a Vuforia target to set the initial piece of the board. During their turn, players will interact with the game from their screens (or if we succeed - with gestures by using [MediaPipe](#-Media pipe) - see below). The play mode is online multiplayer - we will have to create a room creation/entering interface. Networking will be handled by an api with an existing Unity package like Photon.
+
+Throught our project we will use free resources, given that this is a project from which we should focus on learning about AR and VR. We will assess the current state of open-source-ness in AR game development by the end of this project.
+
+## Libraries for AR
+
+### Free options
+
+- Vuforia
+
+Vuforia is an augmented reality SDK that enables businesses and app developers to quickly spin-up high fidelity, mobile-centric, immersive AR experiences. The Vuforia SDK leverages computer vision technology to identify and track image targets and 3D objects in real-time.
+
+- ARKit (Apple sdk)
+
+The ARKit SDK functions in the same way as most AR SDK’s function, by enabling digital information and 3D objects to be blended with the real world but offers largely unparalleled accessibility in terms of the number of existing devices that it supports. However, ARKit can be only run on any device equipped with an Apple A9, A10, or A11 processor.
+
+
+- ARCore (Google sdk)
+
+ARCore is Google’s proprietary augmented reality SDK. Similar to ARKit, it enables brands and developers to get AR apps up and running on compatible Google smartphones and tablets. One of the most notable features of ARCore is that it also supports iOS-enabled devices and gives developers unparalleled access to users across both platforms.
+
+- EasyAR
+
+The EasyAR SDK is available to businesses and developers across two-tiered pricing packages: EasyAR SDK Basic and EasyAR SDK Pro.
+
+- MediaPipe
+
+MediaPipe offers cross-platform, customizable ML solutions for live and streaming media. ML solutions in MediaPipe include: face detection, face mesh, hair segmentation, object detection, box tracking, instant motion tracking and many more.
+
+### Paid options
+
+- Wikitude (lowest tier = 2490 €)
+
+The Wikitude SDK includes functionality such as 3D model rendering, location-based AR, and video overlay. Moreover it uses SLAM technology (simultaneous localization and mapping), which facilitates seamless object tracking and recognition alongside markerless instantaneous tracking.
+
+
+## Relevant links
 
 ### Research on AR Boardgames
 

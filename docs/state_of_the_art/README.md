@@ -132,6 +132,8 @@ Vuforia is an augmented reality SDK that enables businesses and app developers t
 
 We will use Vuforia in our project due to its accessibility and ease of use. Using Vuforia we are able to to identify target images and based on them we can place our augmented game components. We have already tried Vuforia before and it was simple enough for us.
 
+We might need to use an image target for the center of the table.
+
 - #### ARKit (Apple sdk)
 
 The ARKit SDK functions in the same way as most AR SDK’s function, by enabling digital information and 3D objects to be blended with the real world but offers largely unparalleled accessibility in terms of the number of existing devices that it supports. However, ARKit can be only run on any device equipped with an Apple A9, A10, or A11 processor.

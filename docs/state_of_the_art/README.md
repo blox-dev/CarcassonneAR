@@ -1,7 +1,26 @@
 # AR board game STATE OF THE ART
 
-[TOC]
 
+# Table of Contents
+1. [Our project](#Our-project)
+2. [Motivation](#Motivation)
+3. [The board game](#The-board-game)
+4. [History of AR](#History-of-AR)
+5. [What others do](#What-others-do)
+    1. [Tendary](#Tendary) 
+    2. [AR Works](#AR-Works)
+    3. [Tilt Five](#Tilt-Five)
+    4. [Unicorn Games: The Explorers](#Unicorn-Games:-The-Explorers)
+    5. [Oracles Game: Civil War](#Oracles-Game:-Civil-War)
+    6. [Live game board](#Live-game-board)
+    7. [Spatial: Holographic AR Tabletop Gaming](#Spatial:-Holographic-AR-Tabletop-Gaming)
+6. [What we will do in this project](#What-we-will-do-in-this-project)
+7. [Used methods](#Used-methods)
+8. [Libraries for AR](#Libraries-for-AR)
+    1. [Free options](#Free-options)
+    2. [Paid options](#Paid-options)
+10. [Relevant links](#Relevant-links)
+    1. [Research on AR Boardgames](#Research-on-AR-Boardgames)
 ## Our project
 
 During this project we will build a board game with AR technologies using the [Vuforia SDK](https://developer.vuforia.com/) and Unity.
@@ -95,38 +114,48 @@ We will try to research one more topic in our project. We could make our game in
 
 ## Used methods
 
-We will try to detect a surface or a Vuforia target to set the initial piece of the board. During their turn, players will interact with the game from their screens (or if we succeed - with gestures by using [MediaPipe](#-Media pipe) - see below). The play mode is online multiplayer - we will have to create a room creation/entering interface. Networking will be handled by an api with an existing Unity package like Photon.
+We will try to detect a surface or a Vuforia target to set the initial piece of the board. During their turn, players will interact with the game from their screens (or if we succeed - with gestures by using [MediaPipe](#MediaPipe) - see below). The play mode is online multiplayer - we will have to create a room creation/entering interface. Networking will be handled by an api with an existing Unity package like Photon.
 
 Throught our project we will use free resources, given that this is a project from which we should focus on learning about AR and VR. We will assess the current state of open-source-ness in AR game development by the end of this project.
+
+## Glasses
+
+AR Headsets and Glasses are costly, but we have bought some cardboard glasses from [Aryzon](https://www.aryzon.com/) and depending if their SDK is working or not, we could try bringing the game to the Aryzon games experience.
 
 ## Libraries for AR
 
 ### Free options
 
-- Vuforia
+- #### Vuforia
 
 Vuforia is an augmented reality SDK that enables businesses and app developers to quickly spin-up high fidelity, mobile-centric, immersive AR experiences. The Vuforia SDK leverages computer vision technology to identify and track image targets and 3D objects in real-time.
 
-- ARKit (Apple sdk)
+- #### ARKit (Apple sdk)
 
 The ARKit SDK functions in the same way as most AR SDK’s function, by enabling digital information and 3D objects to be blended with the real world but offers largely unparalleled accessibility in terms of the number of existing devices that it supports. However, ARKit can be only run on any device equipped with an Apple A9, A10, or A11 processor.
 
 
-- ARCore (Google sdk)
+- #### ARCore (Google sdk)
 
 ARCore is Google’s proprietary augmented reality SDK. Similar to ARKit, it enables brands and developers to get AR apps up and running on compatible Google smartphones and tablets. One of the most notable features of ARCore is that it also supports iOS-enabled devices and gives developers unparalleled access to users across both platforms.
 
-- EasyAR
+- #### EasyAR
 
 The EasyAR SDK is available to businesses and developers across two-tiered pricing packages: EasyAR SDK Basic and EasyAR SDK Pro.
 
-- MediaPipe
+- #### MediaPipe
 
 MediaPipe offers cross-platform, customizable ML solutions for live and streaming media. ML solutions in MediaPipe include: face detection, face mesh, hair segmentation, object detection, box tracking, instant motion tracking and many more.
 
+![mediap](https://www.slashgear.com/wp-content/uploads/2019/08/google-mediapipe.jpg)
+
+- #### Photon Engine
+
+Photon Unity Networking (PUN) re-implements and enhances the features of Unity’s built-in networking. Under the hood, it uses Photon’s features to communicate and match players. The API is very similar to Unity’s. Developers with prior networking experience in Unity will feel at home immediately. An automatic converter assists you porting existing multiplayer projects.
+
 ### Paid options
 
-- Wikitude (lowest tier = 2490 €)
+- #### Wikitude (lowest tier = 2490 €)
 
 The Wikitude SDK includes functionality such as 3D model rendering, location-based AR, and video overlay. Moreover it uses SLAM technology (simultaneous localization and mapping), which facilitates seamless object tracking and recognition alongside markerless instantaneous tracking.
 
@@ -135,7 +164,7 @@ The Wikitude SDK includes functionality such as 3D model rendering, location-bas
 
 ### Research on AR Boardgames
 
-Some articles delve into the challenges of creating AR games and delve on the implications of new technologies:
+Some articles delve into the challenges of creating AR games and describe the implications of new technologies:
 
 [Designing_Augmented_Reality_Board_Games_The_BattleBoard_3D_experience.pdf](https://www.researchgate.net/publication/249849714_Designing_Augmented_Reality_Board_Games_The_BattleBoard_3D_experience)
 

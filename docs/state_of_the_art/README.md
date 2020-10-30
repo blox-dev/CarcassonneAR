@@ -136,11 +136,13 @@ We might need to use an image target for the center of the table.
 
 - #### ARKit (Apple sdk)
 
-The ARKit SDK functions in the same way as most AR SDK’s function, by enabling digital information and 3D objects to be blended with the real world but offers largely unparalleled accessibility in terms of the number of existing devices that it supports. However, ARKit can be only run on any device equipped with an Apple A9, A10, or A11 processor.
+The ARKit SDK functions in the same way as most AR SDK’s function, by enabling digital information and 3D objects to be blended with the real world but offers largely unparalleled accessibility in terms of the number of existing devices that it supports. However, ARKit can be only run on any device equipped with an Apple A9, A10, or A11 processor. 
 
 - #### ARCore (Google sdk)
 
 ARCore is Google’s proprietary augmented reality SDK. Similar to ARKit, it enables brands and developers to get AR apps up and running on compatible Google smartphones and tablets. One of the most notable features of ARCore is that it also supports iOS-enabled devices and gives developers unparalleled access to users across both platforms.
+
+We have considered ARCore to be our second option if we renounce using Vuforia. 
 
 - #### EasyAR
 
@@ -149,6 +151,9 @@ The EasyAR SDK is available to businesses and developers across two-tiered prici
 - #### MediaPipe
 
 MediaPipe offers cross-platform, customizable ML solutions for live and streaming media. ML solutions in MediaPipe include: face detection, face mesh, hair segmentation, object detection, box tracking, instant motion tracking and many more.
+
+We may use MediaPipe in order to identify hand movement, grabbing and placing of game components.
+
 
 ![mediap](https://www.slashgear.com/wp-content/uploads/2019/08/google-mediapipe.jpg)
 
@@ -161,6 +166,8 @@ Photon Unity Networking (PUN) re-implements and enhances the features of Unity�
 - #### Wikitude (lowest tier = 2490 €)
 
 The Wikitude SDK includes functionality such as 3D model rendering, location-based AR, and video overlay. Moreover it uses SLAM technology (simultaneous localization and mapping), which facilitates seamless object tracking and recognition alongside markerless instantaneous tracking.
+
+We only mentioned Wikitude for reference.
 
 
 ## Relevant links

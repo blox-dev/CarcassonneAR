@@ -215,6 +215,8 @@ MonoBehaviour:
   Root: {fileID: 197663747}
   TilePrefab: {fileID: 8363726125909036954, guid: 305d31ef386fb004696aacd4a1d04b01,
     type: 3}
+  MeeplePrefab: {fileID: 919132149155446097, guid: ab145c8c82eedb647bdf32417983ed51,
+    type: 3}
 --- !u!4 &349031810
 Transform:
   m_ObjectHideFlags: 0

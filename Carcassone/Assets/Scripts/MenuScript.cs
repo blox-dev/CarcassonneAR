@@ -6,16 +6,17 @@ using UnityEngine.UI;
 public class MenuScript : MonoBehaviour
 {
     public Canvas canvas;
-    private GameObject createGameButton, joinGameButton, quitGameButton;
+    private GameObject createGameButton, joinGameButton, settingsButton, quitGameButton;
     private GameObject joinGameText, joinGameInput, joinGameErrorText, joinGameStartButton, joinGameToMenuButton;
     private GameObject roomNameText, roomNameInput, roomNameErrorText, startGameButton, createGameToMenuButton;
-
+    private GameObject volumeText, volumeSlider, settingsToMenuButton;
     private GameObject quitGameText, quitGameConfirmButton, quitGameCancelButton;
     // Start is called before the first frame update
     void Start()
     {
         createGameButton = canvas.transform.Find("createGameButton").gameObject;
         joinGameButton = canvas.transform.Find("joinGameButton").gameObject;
+        settingsButton = canvas.transform.Find("settingsButton").gameObject;
         quitGameButton = canvas.transform.Find("quitGameButton").gameObject;
 
         roomNameText = canvas.transform.Find("roomNameText").gameObject;
@@ -29,6 +30,10 @@ public class MenuScript : MonoBehaviour
         joinGameErrorText = canvas.transform.Find("joinGameErrorText").gameObject;
         joinGameStartButton = canvas.transform.Find("joinGameStartButton").gameObject;
         joinGameToMenuButton = canvas.transform.Find("joinGameToMenuButton").gameObject;
+
+        volumeText = canvas.transform.Find("volumeText").gameObject;
+        volumeSlider = canvas.transform.Find("volumeSlider").gameObject;
+        settingsToMenuButton = canvas.transform.Find("settingsToMenuButton").gameObject;
 
         quitGameText = canvas.transform.Find("quitGameText").gameObject;
         quitGameConfirmButton = canvas.transform.Find("quitGameConfirmButton").gameObject;
@@ -53,6 +58,11 @@ public class MenuScript : MonoBehaviour
         joinGameToMenuButton.SetActive(false);
 
 
+        volumeText.SetActive(false);
+        volumeSlider.SetActive(false);
+        settingsToMenuButton.SetActive(false);
+
+
         quitGameText.SetActive(false);
         quitGameConfirmButton.SetActive(false);
         quitGameCancelButton.SetActive(false);
@@ -60,6 +70,7 @@ public class MenuScript : MonoBehaviour
 
         createGameButton.SetActive(true);
         joinGameButton.SetActive(true);
+        settingsButton.SetActive(true);
         quitGameButton.SetActive(true);
     }
 
@@ -67,6 +78,7 @@ public class MenuScript : MonoBehaviour
     {
         createGameButton.SetActive(false);
         joinGameButton.SetActive(false);
+        settingsButton.SetActive(false);
         quitGameButton.SetActive(false);
 
         roomNameText.SetActive(true);
@@ -111,6 +123,7 @@ public class MenuScript : MonoBehaviour
     {
         createGameButton.SetActive(false);
         joinGameButton.SetActive(false);
+        settingsButton.SetActive(false);
         quitGameButton.SetActive(false);
 
         joinGameText.SetActive(true);
@@ -146,10 +159,23 @@ public class MenuScript : MonoBehaviour
         Debug.Log("let's go");
     }
 
+    public void onSettingsButtonPress()
+    {
+        createGameButton.SetActive(false);
+        joinGameButton.SetActive(false);
+        settingsButton.SetActive(false);
+        quitGameButton.SetActive(false);
+
+        volumeText.SetActive(true);
+        volumeSlider.SetActive(true);
+        settingsToMenuButton.SetActive(true);
+    }
+
     public void onQuitGameButtonPress()
     {
         createGameButton.SetActive(false);
         joinGameButton.SetActive(false);
+        settingsButton.SetActive(false);
         quitGameButton.SetActive(false);
 
         quitGameText.SetActive(true);

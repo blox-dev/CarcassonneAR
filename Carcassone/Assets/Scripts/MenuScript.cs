@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Audio;
 
 public class MenuScript : MonoBehaviour
 {
@@ -11,6 +12,10 @@ public class MenuScript : MonoBehaviour
     private GameObject roomNameText, roomNameInput, roomNameErrorText, startGameButton, createGameToMenuButton;
     private GameObject volumeText, volumeSlider, settingsToMenuButton;
     private GameObject quitGameText, quitGameConfirmButton, quitGameCancelButton;
+    
+    private GameObject backgroundMusic;
+    
+
     // Start is called before the first frame update
     void Start()
     {
@@ -38,6 +43,10 @@ public class MenuScript : MonoBehaviour
         quitGameText = canvas.transform.Find("quitGameText").gameObject;
         quitGameConfirmButton = canvas.transform.Find("quitGameConfirmButton").gameObject;
         quitGameCancelButton = canvas.transform.Find("quitGameCancelButton").gameObject;
+
+        backgroundMusic = canvas.transform.Find("backgroundMusic").gameObject;
+        AudioSource audio = backgroundMusic.GetComponent<AudioSource>();
+        audio.Play();
 
         onMenuEnter();
     }
@@ -72,6 +81,8 @@ public class MenuScript : MonoBehaviour
         joinGameButton.SetActive(true);
         settingsButton.SetActive(true);
         quitGameButton.SetActive(true);
+
+        
     }
 
     public void onCreateGameButtonPress()
@@ -169,6 +180,7 @@ public class MenuScript : MonoBehaviour
         volumeText.SetActive(true);
         volumeSlider.SetActive(true);
         settingsToMenuButton.SetActive(true);
+
     }
 
     public void onQuitGameButtonPress()

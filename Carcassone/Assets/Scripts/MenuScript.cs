@@ -44,7 +44,7 @@ public class MenuScript : MonoBehaviour
         quitGameConfirmButton = canvas.transform.Find("quitGameConfirmButton").gameObject;
         quitGameCancelButton = canvas.transform.Find("quitGameCancelButton").gameObject;
 
-        backgroundMusic = canvas.transform.Find("backgroundMusic").gameObject;
+        backgroundMusic = GameObject.Find("backgroundMusic");
         AudioSource audio = backgroundMusic.GetComponent<AudioSource>();
         audio.Play();
 

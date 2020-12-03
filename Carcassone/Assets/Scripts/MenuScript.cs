@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
-
+using UnityEngine.SceneManagement;
 public class MenuScript : MonoBehaviour
 {
     public Canvas canvas;
@@ -122,7 +122,7 @@ public class MenuScript : MonoBehaviour
 
     public void onStartGameButtonPress()
     {
-        Debug.Log("let's go");
+        SceneManager.LoadScene("TargetBoard");
     }
 
     public void onBackToMenuButtonPress()
@@ -167,7 +167,7 @@ public class MenuScript : MonoBehaviour
 
     public void onJoinGameStartButtonPress()
     {
-        Debug.Log("let's go");
+        SceneManager.LoadScene("TargetBoard");
     }
 
     public void onSettingsButtonPress()

@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo))
             {
-                var pos = hitInfo.collider.GetComponent<Transform>().position;
+                var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
                 if (hitInfo.collider.name.StartsWith("SelectorTile"))
                 {
                     AddTile(((int)pos.x, (int)pos.z));
@@ -70,7 +70,7 @@ public class GameManager : MonoBehaviour
     public void CreateTile(int tile, Vector3 relativePosition)
     {
         var clone = tile > 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
-        clone.transform.position = relativePosition;
+        clone.transform.localPosition = relativePosition;
         if (tile < 0)
         {
             return;
@@ -82,6 +82,9 @@ public class GameManager : MonoBehaviour
             clone.name = spriteName;
             var rend = clone.transform.GetChild(0).GetComponent<SpriteRenderer>();
             rend.sprite = sprite;
+            Debug.Log("pos " +  clone.transform.position.ToString());
+            Debug.Log("rot " + clone.transform.rotation.ToString());
+            Debug.Log("scale " + clone.transform.localScale.ToString());
         }
         else
         {
@@ -101,9 +104,9 @@ public class GameManager : MonoBehaviour
             rend.material = material;
             var newMeeple = Instantiate(clone, MeepleRoot.GetComponent<Transform>());
             newMeeple.transform.localScale = new Vector3(1, 1, 1);
-            var newMeeplePosition = newMeeple.transform.position;
+            var newMeeplePosition = newMeeple.transform.localPosition;
             newMeeplePosition = new Vector3(relativePosition.x + newMeeplePosition.x, relativePosition.y + newMeeplePosition.y + meepleHeight, relativePosition.z + newMeeplePosition.z);
-            newMeeple.transform.position = newMeeplePosition;
+            newMeeple.transform.localPosition = newMeeplePosition;
         }
         else
         {
@@ -118,7 +121,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < TileRoot.transform.childCount; i++)
         {
             var child = TileRoot.transform.GetChild(i);
-            var pos = child.transform.position;
+            var pos = child.transform.localPosition;
             if ((int)pos.x == tuple.Item1 && (int)pos.z == tuple.Item2)
             {
                 Destroy(child.gameObject);

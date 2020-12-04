@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using LibCarcassonne.GameComponents;
 
 public class GameManager : MonoBehaviour
 {
     public GameObject TileRoot;
-    public GameObject MeepleRoot;
     public GameObject TilePrefab;
     public GameObject SelectorTilePrefab;
     public GameObject MeeplePrefab;
+    public GameObject MeeplePlacePrefab;
 
     // TileDeck
     private System.Random rand = new System.Random();
@@ -17,6 +19,10 @@ public class GameManager : MonoBehaviour
 
     // TilePositions
     private List<(int, int)> filledPositions = new List<(int, int)>();
+
+    // CoreLogic
+    ComponentManager componentManager = new ComponentManager();
+    List<TileComponent> tileComponents;
 
     public enum MeepleColor
     {
@@ -29,13 +35,19 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        tileComponents = componentManager.ParseJson("Assets/Scripts/LibCarcassonne/tiles_map.json");
+        if (tileComponents.Count != 72)
+        {
+            throw new Exception("Incorrect number of tiles");
+        }
+
         tileDeck = Enumerable.Range(0, 71).OrderBy(c => rand.Next()).ToArray();
 
         AddTile((0, 0));
 
-        CreateMeeple(MeepleColor.black, new Vector3(0, 0, -0.2f));
-        CreateMeeple(MeepleColor.red, new Vector3(0.21f, 0, -0.4f));
-        CreateMeeple(MeepleColor.blue, new Vector3(-0.2f, 0, -0.6f));
+        //CreateMeeple(MeepleColor.black, new Vector3(0, 0, -0.2f));
+        //CreateMeeple(MeepleColor.red, new Vector3(0.21f, 0, -0.4f));
+        //CreateMeeple(MeepleColor.blue, new Vector3(-0.2f, 0, -0.6f));
     }
 
     void Update()
@@ -50,6 +62,10 @@ public class GameManager : MonoBehaviour
                 if (hitInfo.collider.name.StartsWith("SelectorTile"))
                 {
                     AddTile(((int)pos.x, (int)pos.z));
+                }
+                else if (hitInfo.collider.name.StartsWith("MeeplePlace"))
+                {
+                    AddMeeple(hitInfo.collider.gameObject);
                 }
             }
         }
@@ -69,8 +85,8 @@ public class GameManager : MonoBehaviour
     // Object Creation
     public void CreateTile(int tile, Vector3 relativePosition)
     {
-        var clone = tile > 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
-        clone.transform.localPosition = relativePosition;
+        var tileClone = tile > 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
+        tileClone.transform.localPosition = relativePosition;
         if (tile < 0)
         {
             return;
@@ -79,40 +95,38 @@ public class GameManager : MonoBehaviour
         var sprite = Resources.Load<Sprite>("Images/Tiles/" + spriteName);
         if (sprite)
         {
-            clone.name = spriteName;
-            var rend = clone.transform.GetChild(0).GetComponent<SpriteRenderer>();
+            tileClone.name = spriteName;
+            var rend = tileClone.transform.GetChild(0).GetComponent<SpriteRenderer>();
             rend.sprite = sprite;
-            Debug.Log("pos " +  clone.transform.position.ToString());
-            Debug.Log("rot " + clone.transform.rotation.ToString());
-            Debug.Log("scale " + clone.transform.localScale.ToString());
+            for (var i = 0; i < tileComponents[tile].Types.Count; i++)
+            {
+                var feature = tileComponents[tile].Types[i];
+                var featureClone = Instantiate(MeeplePlacePrefab, tileClone.transform);
+                featureClone.transform.localPosition = new Vector3(feature.Center[0]*0.5f, featureClone.transform.localPosition.y, feature.Center[1]*0.5f);
+            }
         }
         else
         {
-            Debug.Log("Failed to load" + "Images/Tiles/" + spriteName);
+            Debug.Log("Failed to load" + "Images/Tiles/" + spriteName); //todo: a serializable field with all sprites added would remove loading
         }
     }
 
-    public void CreateMeeple(MeepleColor meepleColor, Vector3 relativePosition)
+    public void CreateMeeple(MeepleColor meepleColor, Transform parent, Vector3 relativePosition)
     {
-        float meepleHeight = 0.115f; //should not be a random constant
-        var clone = Instantiate(MeeplePrefab);
+        const float meepleHeight = 0.115f; //should not be a random constant
         var materialName = meepleColor.ToString() + "_meeple";
         var material = Resources.Load<Material>("Materials/" + materialName);
         if (material)
         {
-            var rend = clone.GetComponent<Renderer>();
+            var newMeeple = Instantiate(MeeplePrefab, parent);
+            var rend = newMeeple.transform.GetChild(0).GetComponent<Renderer>();
             rend.material = material;
-            var newMeeple = Instantiate(clone, MeepleRoot.GetComponent<Transform>());
-            newMeeple.transform.localScale = new Vector3(1, 1, 1);
-            var newMeeplePosition = newMeeple.transform.localPosition;
-            newMeeplePosition = new Vector3(relativePosition.x + newMeeplePosition.x, relativePosition.y + newMeeplePosition.y + meepleHeight, relativePosition.z + newMeeplePosition.z);
-            newMeeple.transform.localPosition = newMeeplePosition;
+            newMeeple.transform.localPosition = new Vector3(relativePosition.x, relativePosition.y + meepleHeight, relativePosition.z);
         }
         else
         {
             Debug.Log("Failed to load" + "Materials/" + materialName);
         }
-        Destroy(clone);
     }
 
     // Tile placement
@@ -139,5 +153,12 @@ public class GameManager : MonoBehaviour
                 CreateTile(-1, new Vector3(tuple.Item1 + xy.Item1, 0, tuple.Item2 + xy.Item2));
             }
         }
+    }
+
+    void AddMeeple(GameObject place)
+    {
+        Vector3 o = place.transform.localPosition;
+        CreateMeeple(MeepleColor.red, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
+        Destroy(place);
     }
 }

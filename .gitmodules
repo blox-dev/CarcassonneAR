@@ -1,0 +1,3 @@
+[submodule "Carcassone/Assets/Scripts/LibCarcassonne"]
+	path = Carcassone/Assets/Scripts/LibCarcassonne
+	url = git@github.com:firststef/Carcassonne.git

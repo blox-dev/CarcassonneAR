@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
+using LibCarcassonne.GameStructures;
+using LibCarcassonne.GameLogic;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,11 +14,13 @@ public class GameManager : MonoBehaviour
     public GameObject SelectorTilePrefab;
     public GameObject MeeplePrefab;
     public GameObject MeeplePlacePrefab;
+    public Image NextTile;
 
     // TileDeck
     private System.Random rand = new System.Random();
     private uint deckIndex = 0;
     private int[] tileDeck;
+    private int currentTile;
 
     // TilePositions
     private List<(int, int)> filledPositions = new List<(int, int)>();
@@ -43,11 +48,9 @@ public class GameManager : MonoBehaviour
 
         tileDeck = Enumerable.Range(0, 71).OrderBy(c => rand.Next()).ToArray();
 
-        AddTile((0, 0));
-
-        //CreateMeeple(MeepleColor.black, new Vector3(0, 0, -0.2f));
-        //CreateMeeple(MeepleColor.red, new Vector3(0.21f, 0, -0.4f));
-        //CreateMeeple(MeepleColor.blue, new Vector3(-0.2f, 0, -0.6f));
+        AddTile((0, 0), getNextTile());
+        currentTile = getNextTile();
+        SetNextTile(currentTile);
     }
 
     void Update()
@@ -61,7 +64,9 @@ public class GameManager : MonoBehaviour
                 var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
                 if (hitInfo.collider.name.StartsWith("SelectorTile"))
                 {
-                    AddTile(((int)pos.x, (int)pos.z));
+                    AddTile(((int)pos.x, (int)pos.z), currentTile);
+                    currentTile = getNextTile();
+                    SetNextTile(currentTile);
                 }
                 else if (hitInfo.collider.name.StartsWith("MeeplePlace"))
                 {
@@ -85,7 +90,7 @@ public class GameManager : MonoBehaviour
     // Object Creation
     public void CreateTile(int tile, Vector3 relativePosition)
     {
-        var tileClone = tile > 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
+        var tileClone = tile >= 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
         tileClone.transform.localPosition = relativePosition;
         if (tile < 0)
         {
@@ -129,8 +134,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void SetNextTile(int tile)
+    {
+        string spriteName = "tile" + (tile + 1).ToString();
+        var sprite = Resources.Load<Sprite>("Images/Tiles/" + spriteName);
+        if (sprite)
+        {
+            NextTile.sprite = sprite;
+        }
+    }
+
     // Tile placement
-    void AddTile((int, int) tuple)
+    void AddTile((int, int) tuple, int tileID)
     {
         for (int i = 0; i < TileRoot.transform.childCount; i++)
         {
@@ -142,7 +157,7 @@ public class GameManager : MonoBehaviour
                 break;
             }
         }
-        CreateTile(getNextTile(), new Vector3(tuple.Item1, 0, tuple.Item2));
+        CreateTile(tileID, new Vector3(tuple.Item1, 0, tuple.Item2));
         filledPositions.Add(tuple);
         foreach (var xy in new List<(int, int)> {(0, 1), (-1, 0), (0, -1), (1, 0) })
         {

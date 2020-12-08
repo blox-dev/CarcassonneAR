@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using LibCarcassonne.GameComponents;
+//using LibCarcassonne.GameComponents;
 
 public class GameManager : MonoBehaviour
 {
@@ -21,8 +21,8 @@ public class GameManager : MonoBehaviour
     private List<(int, int)> filledPositions = new List<(int, int)>();
 
     // CoreLogic
-    ComponentManager componentManager = new ComponentManager();
-    List<TileComponent> tileComponents;
+    //ComponentManager componentManager = new ComponentManager();
+    //List<TileComponent> tileComponents;
 
     public enum MeepleColor
     {
@@ -35,11 +35,11 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        tileComponents = componentManager.ParseJson("Assets/Scripts/LibCarcassonne/tiles_map.json");
-        if (tileComponents.Count != 72)
-        {
-            throw new Exception("Incorrect number of tiles");
-        }
+        //tileComponents = componentManager.ParseJson("Assets/Scripts/LibCarcassonne/tiles_map.json");
+        //if (tileComponents.Count != 72)
+        //{
+        //    throw new Exception("Incorrect number of tiles");
+        //}
 
         tileDeck = Enumerable.Range(0, 71).OrderBy(c => rand.Next()).ToArray();
 
@@ -98,12 +98,12 @@ public class GameManager : MonoBehaviour
             tileClone.name = spriteName;
             var rend = tileClone.transform.GetChild(0).GetComponent<SpriteRenderer>();
             rend.sprite = sprite;
-            for (var i = 0; i < tileComponents[tile].Types.Count; i++)
-            {
-                var feature = tileComponents[tile].Types[i];
-                var featureClone = Instantiate(MeeplePlacePrefab, tileClone.transform);
-                featureClone.transform.localPosition = new Vector3(feature.Center[0]*0.5f, featureClone.transform.localPosition.y, feature.Center[1]*0.5f);
-            }
+            //for (var i = 0; i < tileComponents[tile].Types.Count; i++)
+            //{
+            //    var feature = tileComponents[tile].Types[i];
+            //    var featureClone = Instantiate(MeeplePlacePrefab, tileClone.transform);
+            //    featureClone.transform.localPosition = new Vector3(feature.Center[0]*0.5f, featureClone.transform.localPosition.y, feature.Center[1]*0.5f);
+            //}
         }
         else
         {

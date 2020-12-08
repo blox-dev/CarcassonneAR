@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TargetBoard.unity
     guid: 7ec6e2aca235cc04f927695b6ef27d73
+  - enabled: 1
+    path: Assets/Scenes/PhotonTest.unity
+    guid: de7999931e7b93d4b806c162816047ed
   m_configObjects: {}

@@ -581,6 +581,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1716195527 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 617726923852084061, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 617726924548873321}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1776626009 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 617726923040830768, guid: ca001aedf57fdc14983f97bdd0cb251d,
@@ -639,6 +651,7 @@ MonoBehaviour:
     type: 3}
   MeeplePlacePrefab: {fileID: 1156688384988120647, guid: 385ab5df8d953b445adb33d392b8d3c4,
     type: 3}
+  NextTile: {fileID: 1716195527}
 --- !u!1 &1852879419
 GameObject:
   m_ObjectHideFlags: 0

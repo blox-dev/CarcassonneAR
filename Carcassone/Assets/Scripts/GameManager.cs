@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
     ComponentManager componentManager = new ComponentManager();
     GameRunner gameRunner;
     List<TileComponent> tileComponents;
+    Tile currentTile;
 
     public enum MeepleColor
     {
@@ -48,11 +49,18 @@ public class GameManager : MonoBehaviour
         }
         gameRunner = new GameRunner(tileComponents);
 
-        tileDeck = Enumerable.Range(0, 71).OrderBy(c => rand.Next()).ToArray();
+        //tileDeck = Enumerable.Range(0, 71).OrderBy(c => rand.Next()).ToArray();
 
-        //AddTile((0, 0), gameRunner.GetCurrentRoundTile().GetIndex() - 1);
-        SetNextTile(gameRunner.GetCurrentRoundTile().GetIndex() - 1);
-        //currentTile = getNextTile();
+        StructureManager structureManager = new StructureManager();
+
+        //Start tile
+        currentTile = gameRunner.GetCurrentRoundTile();
+        AddTile((0, 0), 0, currentTile.GetIndex() - 1);
+        gameRunner.AddTileInPositionAndRotation(currentTile, (72, 72), 0);
+
+        //Next tile
+        currentTile = gameRunner.GetCurrentRoundTile();
+        SetNextTile(currentTile.GetIndex() - 1);
     }
 
     void Update()
@@ -66,12 +74,12 @@ public class GameManager : MonoBehaviour
                 var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
                 if (hitInfo.collider.name.StartsWith("SelectorTile"))
                 {
-                    var tile = gameRunner.GetCurrentRoundTile();
-                    var freePositions = gameRunner.GetFreePositionsForTile(tile);
-                    AddTile((freePositions[0].Item1.Item1 - 72, freePositions[0].Item1.Item2 - 72), freePositions[0].Item2[0], gameRunner.GetCurrentRoundTile().GetIndex() - 1);
-                    gameRunner.AddTileInPositionAndRotation(tile, freePositions[0].Item1, freePositions[0].Item2[0]);
-                    SetNextTile(gameRunner.GetCurrentRoundTile().GetIndex() - 1);
-                    //currentTile = getNextTile();
+                    var freePositions = gameRunner.GetFreePositionsForTile(currentTile);
+                    AddTile((freePositions[0].Item1.Item2 - 72, 72 - freePositions[0].Item1.Item1), freePositions[0].Item2[0], currentTile.GetIndex() - 1);
+                    gameRunner.AddTileInPositionAndRotation(currentTile, freePositions[0].Item1, freePositions[0].Item2[0]);
+                    currentTile = gameRunner.GetCurrentRoundTile();
+                    SetNextTile(currentTile.GetIndex() - 1);
+                    Debug.Log(gameRunner.GameBoard.ToString());
                 }
                 else if (hitInfo.collider.name.StartsWith("MeeplePlace"))
                 {
@@ -97,6 +105,7 @@ public class GameManager : MonoBehaviour
     {
         var tileClone = tile >= 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
         tileClone.transform.localPosition = relativePosition;
+        tileClone.transform.rotation = rotation;
         if (tile < 0)
         {
             return;
@@ -162,7 +171,7 @@ public class GameManager : MonoBehaviour
                 break;
             }
         }
-        CreateTile(tileID, new Vector3(tuple.Item1, 0, tuple.Item2), Quaternion.Euler(rotation * 90, 0.0f, 0.0f));
+        CreateTile(tileID, new Vector3(tuple.Item1, 0, tuple.Item2), Quaternion.Euler(0.0f, rotation * 90, 0.0f));
         filledPositions.Add(tuple);
         foreach (var xy in new List<(int, int)> {(0, 1), (-1, 0), (0, -1), (1, 0) })
         {

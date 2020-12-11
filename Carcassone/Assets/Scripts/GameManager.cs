@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
         currentTileRotation = 0;
         currentTilePosition = (0, 0);
         CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
-        gameRunner.AddTileInPositionAndRotation(currentTile, ConvertUnityToLibCarcassonneCoords(currentTilePosition), currentTileRotation);
+        gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
 
         //Next tile
         currentTile = gameRunner.GetCurrentRoundTile();
@@ -82,6 +82,8 @@ public class GameManager : MonoBehaviour
                     {
                         if (ConvertLibCarcassonneCoordsToUnity(fPos.Item1) == currentTilePosition)
                         {
+                            Debug.Log($"|\tCarcassonne coordinates: {fPos.Item1}\n");
+                            Debug.Log($"|\tUnity coordinates: {ConvertLibCarcassonneCoordsToUnity(fPos.Item1)}\n");
                             found = true;
                             currentTileRotation = fPos.Item2[0];
                             CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
@@ -205,7 +207,9 @@ public class GameManager : MonoBehaviour
             Debug.LogError("Location could not be found even though selection tile existed");
         }
 
-        gameRunner.AddTileInPositionAndRotation(currentTile, ConvertUnityToLibCarcassonneCoords(currentTilePosition), currentTileRotation);
+        Debug.Log($"coordinates in unity:{currentTilePosition}");
+        Debug.Log($"coordinates normal:{(ConvertUnityToLibCarcassonneCoords(currentTilePosition))}");
+        gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
 
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
@@ -221,11 +225,12 @@ public class GameManager : MonoBehaviour
     // Utils
     (int, int) ConvertLibCarcassonneCoordsToUnity((int, int) tuple)
     {
-        return (tuple.Item2 - 72, tuple.Item1 - 72);
+        return (- 72 + tuple.Item2, 72 - tuple.Item1);
     }
 
     (int, int) ConvertUnityToLibCarcassonneCoords((int, int) tuple)
     {
         return (72 - tuple.Item2, 72 + tuple.Item1);
     }
+
 }

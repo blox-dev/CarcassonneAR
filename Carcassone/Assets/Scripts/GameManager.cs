@@ -20,14 +20,15 @@ public class GameManager : MonoBehaviour
     private System.Random rand = new System.Random();
     private uint deckIndex = 0;
 
-    // TilePositions
-    private List<(int, int)> filledPositions = new List<(int, int)>();
-
     // CoreLogic
     ComponentManager componentManager = new ComponentManager();
     GameRunner gameRunner;
     List<TileComponent> tileComponents;
     Tile currentTile;
+    int currentTileRotation;
+    (int, int) currentTilePosition;
+    GameObject currentTileObjectRef;
+    List<GameObject> selectionTiles = new List<GameObject>();
 
     public enum MeepleColor
     {
@@ -51,12 +52,15 @@ public class GameManager : MonoBehaviour
 
         //Start tile
         currentTile = gameRunner.GetCurrentRoundTile();
-        AddTile((0, 0), 0, currentTile.GetIndex() - 1);
-        gameRunner.AddTileInPositionAndRotation(currentTile, (72, 72), 0);
+        currentTileRotation = 0;
+        currentTilePosition = (0, 0);
+        CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
+        gameRunner.AddTileInPositionAndRotation(currentTile, ConvertUnityToLibCarcassonneCoords(currentTilePosition), currentTileRotation);
 
         //Next tile
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
+        RefreshSelectionTiles();
     }
 
     void Update()
@@ -70,12 +74,26 @@ public class GameManager : MonoBehaviour
                 var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
                 if (hitInfo.collider.name.StartsWith("SelectorTile"))
                 {
+                    currentTilePosition = ((int)pos.x, (int)pos.z);
+                    Debug.Log(currentTilePosition);
                     var freePositions = gameRunner.GetFreePositionsForTile(currentTile);
-                    AddTile((freePositions[0].Item1.Item2 - 72, 72 - freePositions[0].Item1.Item1), freePositions[0].Item2[0], currentTile.GetIndex() - 1);
-                    gameRunner.AddTileInPositionAndRotation(currentTile, freePositions[0].Item1, freePositions[0].Item2[0]);
-                    currentTile = gameRunner.GetCurrentRoundTile();
-                    SetNextTile(currentTile.GetIndex() - 1);
-                    Debug.Log(gameRunner.GameBoard.ToString());
+                    bool found = false;
+                    foreach(var fPos in freePositions)
+                    {
+                        if (ConvertLibCarcassonneCoordsToUnity(fPos.Item1) == currentTilePosition)
+                        {
+                            found = true;
+                            currentTileRotation = fPos.Item2[0];
+                            CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
+                            MakeTileChoice();
+                            //SetMeeplePositions();
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        Debug.LogError("Could not find tile in freePos");
+                    }
                 }
                 else if (hitInfo.collider.name.StartsWith("MeeplePlace"))
                 {
@@ -93,6 +111,7 @@ public class GameManager : MonoBehaviour
         tileClone.transform.rotation = rotation;
         if (tile < 0)
         {
+            selectionTiles.Add(tileClone);
             return;
         }
         string spriteName = "tile" + (tile + 1).ToString();
@@ -102,12 +121,7 @@ public class GameManager : MonoBehaviour
             tileClone.name = spriteName;
             var rend = tileClone.transform.GetChild(0).GetComponent<SpriteRenderer>();
             rend.sprite = sprite;
-            for (var i = 0; i < tileComponents[tile].Types.Count; i++)
-            {
-                var feature = tileComponents[tile].Types[i];
-                var featureClone = Instantiate(MeeplePlacePrefab, tileClone.transform);
-                featureClone.transform.localPosition = new Vector3(feature.Center[0] * 0.5f, featureClone.transform.localPosition.y, feature.Center[1] * 0.5f);
-            }
+            currentTileObjectRef = tileClone;
         }
         else
         {
@@ -143,29 +157,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Tile placement
-    void AddTile((int, int) tuple, int rotation, int tileID)
+    void RefreshSelectionTiles()
     {
-        for (int i = 0; i < TileRoot.transform.childCount; i++)
+        foreach (var obj in selectionTiles)
         {
-            var child = TileRoot.transform.GetChild(i);
-            var pos = child.transform.localPosition;
-            if ((int)pos.x == tuple.Item1 && (int)pos.z == tuple.Item2)
-            {
-                Destroy(child.gameObject);
-                break;
-            }
+            Destroy(obj);
         }
-        CreateTile(tileID, new Vector3(tuple.Item1, 0, tuple.Item2), Quaternion.Euler(0.0f, rotation * 90, 0.0f));
-        filledPositions.Add(tuple);
-        foreach (var xy in new List<(int, int)> {(0, 1), (-1, 0), (0, -1), (1, 0) })
+        foreach (var tilePos in gameRunner.GetFreePositionsForTile(currentTile))
         {
-            var new_t = (tuple.Item1 + xy.Item1, tuple.Item2 + xy.Item2);
-            if (!filledPositions.Contains(new_t))
-            {
-                filledPositions.Add(new_t);
-                CreateTile(-1, new Vector3(tuple.Item1 + xy.Item1, 0, tuple.Item2 + xy.Item2), Quaternion.Euler(0.0f,0.0f,0.0f));
-            }
+            var pos = ConvertLibCarcassonneCoordsToUnity(tilePos.Item1);
+            CreateTile(-1, new Vector3(pos.Item1, 0, pos.Item2), Quaternion.Euler(0.0f, 0.0f, 0.0f));
         }
     }
 
@@ -174,5 +175,57 @@ public class GameManager : MonoBehaviour
         Vector3 o = place.transform.localPosition;
         CreateMeeple(MeepleColor.red, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
         Destroy(place);
+    }
+
+    void SetMeeplePositions()
+    {
+        for (var i = 0; i < tileComponents[currentTile.GetIndex() - 1].Types.Count; i++)
+        {
+            var feature = tileComponents[currentTile.GetIndex() - 1].Types[i];
+            var featureClone = Instantiate(MeeplePlacePrefab, currentTileObjectRef.transform);
+            featureClone.transform.localPosition = new Vector3(feature.Center[0] * 0.5f, featureClone.transform.localPosition.y, feature.Center[1] * 0.5f);
+        }
+    }
+
+    // Meta functions
+    void MakeTileChoice()
+    {
+        var freePositions = gameRunner.GetFreePositionsForTile(currentTile);
+        bool found = false;
+        foreach(var fPos in freePositions)
+        {
+            if (ConvertLibCarcassonneCoordsToUnity(fPos.Item1) == currentTilePosition)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            Debug.LogError("Location could not be found even though selection tile existed");
+        }
+
+        gameRunner.AddTileInPositionAndRotation(currentTile, ConvertUnityToLibCarcassonneCoords(currentTilePosition), currentTileRotation);
+
+        currentTile = gameRunner.GetCurrentRoundTile();
+        SetNextTile(currentTile.GetIndex() - 1);
+        RefreshSelectionTiles();
+        Debug.Log(gameRunner.GameBoard.ToString());
+    }
+
+    void RotateTile()
+    {
+
+    }
+
+    // Utils
+    (int, int) ConvertLibCarcassonneCoordsToUnity((int, int) tuple)
+    {
+        return (tuple.Item2 - 72, tuple.Item1 - 72);
+    }
+
+    (int, int) ConvertUnityToLibCarcassonneCoords((int, int) tuple)
+    {
+        return (72 - tuple.Item2, 72 + tuple.Item1);
     }
 }

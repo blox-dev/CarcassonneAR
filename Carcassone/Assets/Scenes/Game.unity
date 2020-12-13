@@ -134,6 +134,52 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 12800000, guid: 849f921b7d63ea14b807ed83825fa9ad,
         type: 3}
+    - target: {fileID: 617726922738869479, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Text
+      value: Don't place meeple
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761065, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Name
+      value: skipMeepleButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 349031809}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ConfirmMove
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726922851761067, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_SpriteState.m_DisabledSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: d6a1673a31851fd4395c287261da36e4,
+        type: 3}
     - target: {fileID: 617726923040830768, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -318,7 +364,7 @@ PrefabInstance:
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 157.0001
+      value: 157
       objectReference: {fileID: 0}
     - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
@@ -350,6 +396,17 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Interactable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_SpriteState.m_DisabledSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: d6a1673a31851fd4395c287261da36e4,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ca001aedf57fdc14983f97bdd0cb251d, type: 3}
 --- !u!1 &349031808
@@ -391,6 +448,8 @@ MonoBehaviour:
   MeeplePlacePrefab: {fileID: 1156688384988120647, guid: 385ab5df8d953b445adb33d392b8d3c4,
     type: 3}
   NextTile: {fileID: 1919083055}
+  confirmTileButton: {fileID: 981044875}
+  skipMeepleButton: {fileID: 1661417612}
 --- !u!4 &349031810
 Transform:
   m_ObjectHideFlags: 0
@@ -580,6 +639,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 27.095001, y: 0, z: 0}
+--- !u!1 &981044875 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726924694601609, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1646440173
 GameObject:
   m_ObjectHideFlags: 0
@@ -646,6 +711,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1661417612 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726922851761065, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1919083055 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 617726923852084061, guid: ca001aedf57fdc14983f97bdd0cb251d,

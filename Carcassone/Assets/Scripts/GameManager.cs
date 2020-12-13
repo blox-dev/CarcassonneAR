@@ -16,30 +16,30 @@ public class GameManager : MonoBehaviour
     public GameObject MeeplePlacePrefab;
     public Image NextTile;
 
-    // TileDeck
-    private System.Random rand = new System.Random();
-    private uint deckIndex = 0;
+    public GameObject confirmTileButton;
+    public GameObject skipMeepleButton;
 
     // CoreLogic
     ComponentManager componentManager = new ComponentManager();
     GameRunner gameRunner;
     List<TileComponent> tileComponents;
     Tile currentTile;
+    Tile currentPlacedTile;
+    GameObject currentTileObjectRef;
+    (int, int) currentTilePosition;
     int currentTileRotation;
     List<int> currentTilePossibleRotations = new List<int>();
-    (int, int) currentTilePosition;
-    GameObject currentTileObjectRef;
     List<GameObject> selectionTiles = new List<GameObject>();
     List<GameObject> selectionMeeples = new List<GameObject>();
 
-    public enum MeepleColor
+    enum TurnLogicState
     {
-        black,
-        red,
-        blue,
-        breen,
-        yellow
-    }
+        NONE,
+        PLACED_TILE,
+        CONFIRMED_TILE_POSITION,
+        PLACED_MEEPLE
+    };
+    TurnLogicState currentState;
 
     void Start()
     {
@@ -51,6 +51,10 @@ public class GameManager : MonoBehaviour
         gameRunner = new GameRunner(tileComponents);
 
         StructureManager structureManager = new StructureManager();
+
+        currentState = TurnLogicState.NONE;
+        confirmTileButton.SetActive(false);
+        skipMeepleButton.SetActive(false);
 
         //Start tile
         currentTile = gameRunner.GetCurrentRoundTile();
@@ -69,25 +73,15 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        /*
-        
-        1. touch selection tile 
-        2. touch already selected tile = rotate
-        3. confirm move
-        4. place meeple or press skip
-
-        */
-
-
         if (Input.GetMouseButtonDown(0))
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo))
             {
-                var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
-                if (currentTileObjectRef == null && hitInfo.collider.name.StartsWith("SelectorTile"))
+                if (currentState == TurnLogicState.NONE && hitInfo.collider.name.StartsWith("SelectorTile"))
                 {
+                    var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
                     currentTilePosition = ((int)pos.x, (int)pos.z);
                     var freePositions = gameRunner.GetFreePositionsForTile(currentTile);
                     foreach (var fPos in freePositions)
@@ -98,17 +92,20 @@ public class GameManager : MonoBehaviour
                             currentTileRotation = currentTilePossibleRotations[0];
                             CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
                             DestroySelectionTiles();
+                            currentState = TurnLogicState.PLACED_TILE;
+                            confirmTileButton.SetActive(true);
                             break;
                         }
                     }
                 }
-                else if (currentTileObjectRef == hitInfo.collider.gameObject.transform.parent.gameObject)
+                else if (currentState == TurnLogicState.PLACED_TILE && currentTileObjectRef == hitInfo.collider.gameObject.transform.parent.gameObject)
                 {
                     RotateTile();
                 }
-                else if (hitInfo.collider.name.StartsWith("MeeplePlace"))
+                else if (currentState == TurnLogicState.CONFIRMED_TILE_POSITION && hitInfo.collider.name.StartsWith("MeeplePlace"))
                 {
-                    AddMeeple(hitInfo.collider.gameObject);
+                    AddMeeple(hitInfo.collider.gameObject, int.Parse(hitInfo.collider.name.Substring(11)));
+                    currentState = TurnLogicState.PLACED_MEEPLE;
                     ConfirmMove();
                 }
             }
@@ -186,13 +183,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void SetMeeplePositions()
+    void SetMeeplePositions(List<int> positions)
     {
-        for (var i = 0; i < tileComponents[currentTile.GetIndex() - 1].Types.Count; i++)
+        var component = tileComponents[currentTile.GetIndex() - 1];
+        for (var i = 0; i < positions.Count; i++)
         {
-            var feature = tileComponents[currentTile.GetIndex() - 1].Types[i];
+            var feature = component.Types[positions[i]];
             var featureClone = Instantiate(MeeplePlacePrefab, currentTileObjectRef.transform);
             featureClone.transform.localPosition = new Vector3(feature.Center[0] * 0.5f, featureClone.transform.localPosition.y, feature.Center[1] * 0.5f);
+            featureClone.name = "MeeplePlace" + positions[i].ToString();
             selectionMeeples.Add(featureClone);
         }
     }
@@ -210,30 +209,57 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void AddMeeple(GameObject place)
+    void AddMeeple(GameObject place, int featureIndex)
     {
         Vector3 o = place.transform.localPosition;
-        CreateMeeple(MeepleColor.red, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
+        CreateMeeple(MeepleColor.Red, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
         foreach (var go in selectionMeeples)
         {
             Destroy(go);
         }
+        gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, new Meeple(MeepleColor.Red), featureIndex);
     }
 
+    /*
+    1. null tile => touch selection tile [Update()]
+    2. touch already selected tile = rotate [Update()]
+    3. confirm move => [button=ConfirmTilePlacement()]
+    4. place meeple or press skip [Update()=AddMeeple()+ConfirmMove()/button+ConfirmMove]
+    */
     public void ConfirmTilePlacement()
     {
-        SetMeeplePositions(); //only possible
         currentTileObjectRef.transform.Find("ArrowPlace").gameObject.SetActive(false);
-        currentTileObjectRef = null;
+        currentPlacedTile = gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
+        var possiblePositionsForMeeple = currentPlacedTile.GetPossiblePositionsForMeeple();
+        currentState = TurnLogicState.CONFIRMED_TILE_POSITION;
+        confirmTileButton.SetActive(false);
+        skipMeepleButton.SetActive(true);
+
+        if (possiblePositionsForMeeple == null)
+        {
+            ConfirmMove();
+            return;
+        }
+
+        SetMeeplePositions(possiblePositionsForMeeple);
     }
 
-    void ConfirmMove()
+    public void ConfirmMove()
     {
-        gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
+        if (currentState != TurnLogicState.CONFIRMED_TILE_POSITION && currentState != TurnLogicState.PLACED_MEEPLE)
+        {
+            Debug.LogError("Wrong state action");
+            return;
+        }
 
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
         CreateSelectionTiles();
+        currentTileObjectRef = null;
+        currentState = TurnLogicState.NONE;
+        confirmTileButton.SetActive(false);
+        skipMeepleButton.SetActive(false);
+
         Debug.Log(gameRunner.GameBoard.ToString());
     }
 

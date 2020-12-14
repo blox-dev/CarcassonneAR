@@ -6,8 +6,9 @@ using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
+using Photon.Pun;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPun
 {
     public GameObject TileRoot;
     public GameObject TilePrefab;
@@ -91,6 +92,7 @@ public class GameManager : MonoBehaviour
                             currentTilePossibleRotations = fPos.Item2;
                             currentTileRotation = currentTilePossibleRotations[0];
                             CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
+                            photonView.RPC("CreateTile",RpcTarget.Others, currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
                             DestroySelectionTiles();
                             currentState = TurnLogicState.PLACED_TILE;
                             confirmTileButton.SetActive(true);
@@ -113,6 +115,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Object Creation
+    [PunRPC]
     public void CreateTile(int tile, Vector3 relativePosition, Quaternion rotation)
     {
         var tileClone = tile >= 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
@@ -138,6 +141,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    [PunRPC]
     public void CreateMeeple(MeepleColor meepleColor, Transform parent, Vector3 relativePosition)
     {
         const float meepleHeight = 0.115f; //should not be a random constant
@@ -213,6 +217,7 @@ public class GameManager : MonoBehaviour
     {
         Vector3 o = place.transform.localPosition;
         CreateMeeple(MeepleColor.Red, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
+        photonView.RPC("CreateMeeple", RpcTarget.Others,MeepleColor.Blue, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
         foreach (var go in selectionMeeples)
         {
             Destroy(go);

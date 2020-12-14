@@ -81,7 +81,7 @@ public class Loader : MonoBehaviourPunCallbacks
 
             // #Critical
             // Load the Room Level.
-            PhotonNetwork.LoadLevel("PhotonTest");
+            // PhotonNetwork.LoadLevel("PhotonTest");
         }
     }
 
@@ -91,7 +91,10 @@ public class Loader : MonoBehaviourPunCallbacks
 
     #region Public Methods
 
-
+    private void Start()
+    {
+        Connect();
+    }
     /// <summary>
     /// Start the connection process.
     /// - If already connected, we attempt joining a random room

@@ -142,14 +142,14 @@ public class GameManager : MonoBehaviourPun
     }
 
     [PunRPC]
-    public void CreateMeeple(MeepleColor meepleColor, Transform parent, Vector3 relativePosition)
+    public void CreateMeeple(MeepleColor meepleColor, Vector3 relativePosition)
     {
         const float meepleHeight = 0.115f; //should not be a random constant
         var materialName = meepleColor.ToString() + "_meeple";
         var material = Resources.Load<Material>("Materials/" + materialName);
         if (material)
         {
-            var newMeeple = Instantiate(MeeplePrefab, parent);
+            var newMeeple = Instantiate(MeeplePrefab, currentTileObjectRef.transform);
             var rend = newMeeple.transform.GetChild(0).GetComponent<Renderer>();
             rend.material = material;
             newMeeple.transform.localPosition = new Vector3(relativePosition.x, relativePosition.y + meepleHeight, relativePosition.z);
@@ -216,8 +216,8 @@ public class GameManager : MonoBehaviourPun
     void AddMeeple(GameObject place, int featureIndex)
     {
         Vector3 o = place.transform.localPosition;
-        CreateMeeple(MeepleColor.Red, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
-        photonView.RPC("CreateMeeple", RpcTarget.Others,MeepleColor.Blue, place.transform.parent.transform, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
+        CreateMeeple(MeepleColor.Red, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
+        photonView.RPC("CreateMeeple", RpcTarget.Others,MeepleColor.Blue, new Vector3(o.x - 0.22f, o.y, o.z - 0.22f));
         foreach (var go in selectionMeeples)
         {
             Destroy(go);

@@ -11,12 +11,13 @@ using System.Text;
 public class MenuScript : MonoBehaviourPunCallbacks
 {
     public Canvas canvas;
+    public GameObject playerUIPrefab;
     private GameObject createGameButton, joinGameButton, settingsButton, quitGameButton;
-    private GameObject joinGameText, joinGameInput, joinGameErrorText, joinLobbyButton, joinGameToMenuButton;
+    private GameObject joinGameText, joinGameInput, joinGameErrorText, joinLobbyButton, joinGameToMenuButton, joinRandomRoomButton;
     private GameObject roomNameText, roomNameInput, roomNameErrorText, startLobbyButton, createGameToMenuButton;
     private GameObject volumeText, volumeSlider, settingsToMenuButton;
     private GameObject quitGameText, quitGameConfirmButton, quitGameCancelButton;
-    private GameObject lobbyRoomNameText, lobbyPlayerCountText, lobbyPlayerScrollView, startGameButton;
+    private GameObject lobbyRoomNameText, lobbyPlayerCountText, lobbyPlayerScrollView, startGameButton, content;
 
     private GameObject backgroundMusic;
 
@@ -45,6 +46,11 @@ public class MenuScript : MonoBehaviourPunCallbacks
         }
     }
 
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = 5 });
+    }
+
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
         Debug.Log("Create room failed.");
@@ -65,11 +71,16 @@ public class MenuScript : MonoBehaviourPunCallbacks
         roomNameErrorText.SetActive(false);
         startLobbyButton.SetActive(false);
         createGameToMenuButton.SetActive(false);
+        joinRandomRoomButton.SetActive(false);
 
         lobbyRoomNameText.SetActive(true);
         lobbyPlayerCountText.SetActive(true);
         lobbyPlayerScrollView.SetActive(true);
-        startGameButton.SetActive(true);
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            startGameButton.SetActive(true);
+        }
 
         UpdatePlayers();
     }
@@ -82,11 +93,16 @@ public class MenuScript : MonoBehaviourPunCallbacks
         joinGameErrorText.SetActive(false);
         joinLobbyButton.SetActive(false);
         joinGameToMenuButton.SetActive(false);
+        joinRandomRoomButton.SetActive(false);
 
         lobbyRoomNameText.SetActive(true);
         lobbyPlayerCountText.SetActive(true);
         lobbyPlayerScrollView.SetActive(true);
-        //startGameButton.SetActive(true);
+        
+        if(PhotonNetwork.IsMasterClient)
+        {
+            startGameButton.SetActive(true);
+        }
 
         UpdatePlayers();
     }
@@ -96,11 +112,32 @@ public class MenuScript : MonoBehaviourPunCallbacks
         UpdatePlayers();
     }
 
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        Debug.Log("PLayer joined room");
+        UpdatePlayers();
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        Debug.Log("PLayer left room");
+        UpdatePlayers();
+    }
+
     public void UpdatePlayers()
     {
+        lobbyPlayerCountText.GetComponent<Text>().text = PhotonNetwork.PlayerList.Length.ToString() + "/5 players connected.";
+        lobbyRoomNameText.GetComponent<Text>().text = PhotonNetwork.CurrentRoom.Name;
+        //playerCountText = PhotonNetwork.PlayerList.Length.ToString();
+
+        var children = new List<GameObject>();
+        foreach (Transform child in content.transform) children.Add(child.gameObject);
+        children.ForEach(child => Destroy(child));
+
         foreach (Player player in PhotonNetwork.PlayerList)
         {
             Debug.Log(player.NickName);
+            Instantiate(playerUIPrefab, content.transform);         
         }
     }
     void Awake()
@@ -129,6 +166,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         joinGameErrorText = canvas.transform.Find("joinGameErrorText").gameObject;
         joinLobbyButton = canvas.transform.Find("joinLobbyButton").gameObject;
         joinGameToMenuButton = canvas.transform.Find("joinGameToMenuButton").gameObject;
+        joinRandomRoomButton = canvas.transform.Find("joinRandomLobbyButton").gameObject;
 
         volumeText = canvas.transform.Find("volumeText").gameObject;
         volumeSlider = canvas.transform.Find("volumeSlider").gameObject;
@@ -142,6 +180,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         lobbyPlayerCountText = canvas.transform.Find("lobbyPlayerCountText").gameObject;
         lobbyPlayerScrollView = canvas.transform.Find("lobbyPlayerScrollView").gameObject;
         startGameButton = canvas.transform.Find("startGameButton").gameObject;
+        content = lobbyPlayerScrollView.transform.GetChild(0).GetChild(0).gameObject;
 
         backgroundMusic = GameObject.Find("backgroundMusic");
         AudioSource audio = backgroundMusic.GetComponent<AudioSource>();
@@ -164,6 +203,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         joinGameErrorText.SetActive(false);
         joinLobbyButton.SetActive(false);
         joinGameToMenuButton.SetActive(false);
+        joinRandomRoomButton.SetActive(false);
 
 
         volumeText.SetActive(false);
@@ -247,6 +287,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         joinGameErrorText.SetActive(true);
         joinLobbyButton.SetActive(false);
         joinGameToMenuButton.SetActive(true);
+        joinRandomRoomButton.SetActive(true);
     }
 
     public void onJoinRoomNameChange()
@@ -270,6 +311,10 @@ public class MenuScript : MonoBehaviourPunCallbacks
         else joinLobbyButton.SetActive(true);
     }
 
+    public void onJoinRandomRoomButtonPress()
+    {
+        PhotonNetwork.JoinRandomRoom();
+    }
     public void onJoinLobbyButtonPress()
     {
         string roomName = joinGameInput.GetComponent<InputField>().text;

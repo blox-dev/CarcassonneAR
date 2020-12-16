@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Photon.Pun;
+﻿using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 
@@ -57,7 +55,6 @@ public class Loader : MonoBehaviourPunCallbacks
         }
     }
 
-
     //public override void OnDisconnected(DisconnectCause cause)
     //{
     //    Debug.LogWarningFormat("PUN Basics Tutorial/Launcher: OnDisconnected() was called by PUN with reason {0}", cause);
@@ -106,6 +103,7 @@ public class Loader : MonoBehaviourPunCallbacks
         else
         {
             // #Critical, we must first and foremost connect to Photon Online Server.
+            PhotonNetwork.PhotonServerSettings.DevRegion = "eu";
             isConnecting = PhotonNetwork.ConnectUsingSettings();
             PhotonNetwork.GameVersion = gameVersion;
         }

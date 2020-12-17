@@ -369,7 +369,7 @@ PrefabInstance:
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 156.99995
+      value: 170.03897
       objectReference: {fileID: 0}
     - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
@@ -394,7 +394,7 @@ PrefabInstance:
     - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ConfirmTilePlacement
+      value: ConfirmTilePlacement_PLACED_TILE
       objectReference: {fileID: 0}
     - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}

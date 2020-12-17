@@ -184,8 +184,7 @@ public class GameManager : MonoBehaviourPun
         }
 
         currentTileObjectRef.transform.Find("ArrowPlace").gameObject.SetActive(false);
-        currentPlacedTile = gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
-        var possiblePositionsForMeeple = currentPlacedTile.GetPossiblePositionsForMeeple();
+        var possiblePositionsForMeeple = gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
         currentState = TurnLogicState.CONFIRMED_TILE_POSITION;
         confirmTileButton.SetActive(false);
 
@@ -262,7 +261,7 @@ public class GameManager : MonoBehaviourPun
         if (chosenMeepleIndexPosition != -1)
         {
             var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
-            gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, meepleToPlace, chosenMeepleIndexPosition);
+            gameRunner.PlaceMeeple( meepleToPlace, chosenMeepleIndexPosition);
             chosenMeepleIndexPosition = -1;
             CreateMeeple(meepleToPlace.MeepleColor, meepleToPlace.MeepleId, chosenMeeplePosition);
         }

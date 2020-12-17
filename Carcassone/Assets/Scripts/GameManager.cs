@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviourPun
         {
             throw new Exception("Incorrect number of tiles");
         }
-        gameRunner = new GameRunner(tileComponents);
+        gameRunner = new GameRunner(tileComponents, numberOfPlayers: 5);
         StructureManager structureManager = new StructureManager(); // ??
 
         currentState = TurnLogicState.NONE;

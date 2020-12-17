@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
 using Photon.Pun;
+using LibCarcassonne.ArrayAccessMethods;
 
 public class GameManager : MonoBehaviourPun
 {
@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviourPun
     public GameObject skipMeepleButton;
 
     // CoreLogic
-    ComponentManager componentManager = new ComponentManager();
     GameRunner gameRunner;
     List<TileComponent> tileComponents;
     Tile currentTile;
@@ -32,13 +31,16 @@ public class GameManager : MonoBehaviourPun
     (int, int) currentTilePosition;
     int currentTileRotation;
     List<int> currentTilePossibleRotations = new List<int>();
+    
     List<GameObject> selectionTiles = new List<GameObject>();
     List<GameObject> selectionMeeples = new List<GameObject>();
+    Dictionary<int, GameObject> placedMeeples = new Dictionary<int, GameObject>();
+    
     int chosenMeepleIndexPosition;
     Vector3 chosenMeeplePosition;
 
     int currentTurn;
-    int totalNumberOfPlayers = 5;
+    int totalNumberOfPlayers;
 
     enum TurnLogicState
     {
@@ -49,17 +51,18 @@ public class GameManager : MonoBehaviourPun
     };
     TurnLogicState currentState;
 
-    // Main function
-
+    // Main functions
     void Start()
     {
+        var componentManager = new ComponentManager();
         tileComponents = componentManager.ParseJson("Assets/Scripts/LibCarcassonne/tiles_map.json");
         if (tileComponents.Count != 72)
         {
             throw new Exception("Incorrect number of tiles");
         }
-        gameRunner = new GameRunner(tileComponents, numberOfPlayers: 5);
         currentTurn = 0;
+        totalNumberOfPlayers = 5; //todo: add maximum number of players here
+        gameRunner = new GameRunner(tileComponents, numberOfPlayers: 5); 
 
         currentState = TurnLogicState.NONE;
         Init();
@@ -104,19 +107,18 @@ public class GameManager : MonoBehaviourPun
     void CheckInteractionWithBoard()
     {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hitInfo;
-        if (Physics.Raycast(ray, out hitInfo))
+        if (Physics.Raycast(ray, out RaycastHit hitInfo))
         {
             if (currentState == TurnLogicState.NONE && hitInfo.collider.name.StartsWith("SelectorTile"))
             {
                 var pos = hitInfo.collider.GetComponent<Transform>().localPosition;
-                var new_pos = ((int)pos.x, (int)pos.z);
+                var newPos = ((int)pos.x, (int)pos.z);
                 foreach (var fPos in gameRunner.GetFreePositionsForTile(currentTile))
                 {
-                    if (ConvertLibCarcassonneCoordsToUnity(fPos.Item1) == new_pos)
+                    if (ConvertLibCarcassonneCoordsToUnity(fPos.Item1) == newPos)
                     {
                         currentState = TurnLogicState.PLACED_TILE;
-                        PrepareHandlingTilePlacement_PLACED_TILE(new_pos, fPos.Item2);
+                        PrepareHandlingTilePlacement_PLACED_TILE(newPos, fPos.Item2);
                         break;
                     }
                 }
@@ -160,7 +162,7 @@ public class GameManager : MonoBehaviourPun
             return;
         }
 
-        for (int i = 0; i < currentTilePossibleRotations.Count; i++)
+        for (var i = 0; i < currentTilePossibleRotations.Count; i++)
         {
             if (currentTilePossibleRotations[i] == currentTileRotation)
             {
@@ -172,6 +174,7 @@ public class GameManager : MonoBehaviourPun
     }
 
     // goes to CONFIRMED_TILE_POSITION
+    // called by button
     public void ConfirmTilePlacement_PLACED_TILE()
     {
         if (currentState != TurnLogicState.PLACED_TILE)
@@ -186,7 +189,8 @@ public class GameManager : MonoBehaviourPun
         currentState = TurnLogicState.CONFIRMED_TILE_POSITION;
         confirmTileButton.SetActive(false);
 
-        if (possiblePositionsForMeeple == null)
+        var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
+        if (possiblePositionsForMeeple == null || meepleToPlace == null)
         {
             CommitMove();
             return;
@@ -198,6 +202,7 @@ public class GameManager : MonoBehaviourPun
     }
 
     // STATE CONFIRMED_TILE_POSITION
+    // called by button
     public void ConfirmMove()
     {
         if (currentState != TurnLogicState.PLACED_MEEPLE && currentState != TurnLogicState.CONFIRMED_TILE_POSITION)
@@ -248,26 +253,35 @@ public class GameManager : MonoBehaviourPun
 
     void OnEvent()
     {
-        if (false) // if i am this player, dont redo this
+        if (false) // if i am this player, dont redo what has already been done
         {
-            gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
+            gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);       
         }
         CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
         currentTileObjectRef.transform.Find("ArrowPlace").gameObject.SetActive(false);
-        CreateMeeple(MeepleColor.Red, chosenMeeplePosition);
+        if (chosenMeepleIndexPosition != -1)
+        {
+            var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
+            gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, meepleToPlace, chosenMeepleIndexPosition);
+            chosenMeepleIndexPosition = -1;
+            CreateMeeple(meepleToPlace.MeepleColor, meepleToPlace.MeepleId, chosenMeeplePosition);
+        }
+        var meeplesToRaise = gameRunner.CommitChanges();
+        if (meeplesToRaise != null)
+        {
+            foreach (Meeple meeple in meeplesToRaise)
+            {
+                if (!placedMeeples.TryGetValue(meeple.MeepleId, out GameObject meepleGameObject))
+                {
+                    Debug.LogError("Could not find meeple in map");
+                }
+                Destroy(meepleGameObject);
+                meeple.RaiseMeeple();
+                placedMeeples.Remove(meeple.MeepleId);
+            }
+        }
 
-        // old
-        // aici am facut un workaround si am creat cate un nou player pt fiecare meeple. In mod normal, nu se face asa
-        //gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, new Meeple(MeepleColor.Red, new Player(MeepleColor.Red)), chosenMeepleIndexPosition);
-
-        // new
-        // TODO: de verificat inainte daca playerul curent are meeple disponibili: probabil se face asta mnai sus
-        var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
-        // GetPlayer(currentTurn % totalNumberOfPlayers) aici intoarce playerul in doua modalitati : 1. tura % nr_playeri = indexul player | 2. culoarea playerului
-        // GetFreeMeeple(); intoarce null daca nu exista meeple liber
-        gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, meepleToPlace, chosenMeepleIndexPosition);
-        currentTurn++; // cred ca e ok aici?
-
+        currentTurn++;
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
 
@@ -280,7 +294,6 @@ public class GameManager : MonoBehaviourPun
     }
 
     // Object Creation
-    [PunRPC]
     public void CreateTile(int tile, Vector3 relativePosition, Quaternion rotation)
     {
         var tileClone = tile >= 0 ? Instantiate(TilePrefab, TileRoot.transform) : Instantiate(SelectorTilePrefab, TileRoot.transform);
@@ -306,11 +319,10 @@ public class GameManager : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
-    public void CreateMeeple(MeepleColor meepleColor, Vector3 relativePosition)
+    public void CreateMeeple(MeepleColor meepleColor, int meepleId, Vector3 relativePosition)
     {
         const float meepleHeight = 0.115f; //should not be a random constant
-        var materialName = meepleColor.ToString() + "_meeple";
+        var materialName = meepleColor + "_meeple";
         var material = Resources.Load<Material>("Materials/" + materialName);
         if (material)
         {
@@ -318,6 +330,7 @@ public class GameManager : MonoBehaviourPun
             var rend = newMeeple.transform.GetChild(0).GetComponent<Renderer>();
             rend.material = material;
             newMeeple.transform.localPosition = new Vector3(relativePosition.x, relativePosition.y + meepleHeight, relativePosition.z);
+            placedMeeples.Add(meepleId, newMeeple);
         }
         else
         {

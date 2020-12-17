@@ -252,7 +252,9 @@ public class GameManager : MonoBehaviourPun
         CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
         currentTileObjectRef.transform.Find("ArrowPlace").gameObject.SetActive(false);
         CreateMeeple(MeepleColor.Red, chosenMeeplePosition);
-        gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, new Meeple(MeepleColor.Red), chosenMeepleIndexPosition);
+
+        // aici am facut un workaround si am creat cate un nou player pt fiecare meeple. In mod normal, nu se face asa
+        gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, new Meeple(MeepleColor.Red, new Player(MeepleColor.Red)), chosenMeepleIndexPosition);
         
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);

@@ -37,6 +37,9 @@ public class GameManager : MonoBehaviourPun
     int chosenMeepleIndexPosition;
     Vector3 chosenMeeplePosition;
 
+    int currentTurn;
+    int totalNumberOfPlayers = 5;
+
     enum TurnLogicState
     {
         NONE,
@@ -56,7 +59,7 @@ public class GameManager : MonoBehaviourPun
             throw new Exception("Incorrect number of tiles");
         }
         gameRunner = new GameRunner(tileComponents, numberOfPlayers: 5);
-        StructureManager structureManager = new StructureManager(); // ??
+        currentTurn = 0;
 
         currentState = TurnLogicState.NONE;
         Init();
@@ -253,9 +256,18 @@ public class GameManager : MonoBehaviourPun
         currentTileObjectRef.transform.Find("ArrowPlace").gameObject.SetActive(false);
         CreateMeeple(MeepleColor.Red, chosenMeeplePosition);
 
+        // old
         // aici am facut un workaround si am creat cate un nou player pt fiecare meeple. In mod normal, nu se face asa
-        gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, new Meeple(MeepleColor.Red, new Player(MeepleColor.Red)), chosenMeepleIndexPosition);
-        
+        //gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, new Meeple(MeepleColor.Red, new Player(MeepleColor.Red)), chosenMeepleIndexPosition);
+
+        // new
+        // TODO: de verificat inainte daca playerul curent are meeple disponibili: probabil se face asta mnai sus
+        var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
+        // GetPlayer(currentTurn % totalNumberOfPlayers) aici intoarce playerul in doua modalitati : 1. tura % nr_playeri = indexul player | 2. culoarea playerului
+        // GetFreeMeeple(); intoarce null daca nu exista meeple liber
+        gameRunner.GameBoard.PlaceMeeple(currentPlacedTile, meepleToPlace, chosenMeepleIndexPosition);
+        currentTurn++; // cred ca e ok aici?
+
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
 

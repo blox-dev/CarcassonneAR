@@ -15,9 +15,9 @@ public class MenuScript : MonoBehaviourPunCallbacks
     private GameObject createGameButton, joinGameButton, settingsButton, quitGameButton;
     private GameObject joinGameText, joinGameInput, joinGameErrorText, joinLobbyButton, joinGameToMenuButton, joinRandomRoomButton;
     private GameObject roomNameText, roomNameInput, roomNameErrorText, startLobbyButton, createGameToMenuButton;
-    private GameObject volumeText, volumeSlider, settingsToMenuButton;
+    private GameObject volumeText, volumeSlider, nickNameText, nickNameInput, settingsToMenuButton;
     private GameObject quitGameText, quitGameConfirmButton, quitGameCancelButton;
-    private GameObject lobbyRoomNameText, lobbyPlayerCountText, lobbyPlayerScrollView, startGameButton, content;
+    private GameObject lobbyRoomNameText, lobbyPlayerCountText, lobbyPlayerScrollView, startGameButton, content, lobbyToMenuButton;
 
     private GameObject backgroundMusic;
 
@@ -38,7 +38,19 @@ public class MenuScript : MonoBehaviourPunCallbacks
     }
     public override void OnConnectedToMaster()
     {
-        PhotonNetwork.NickName = RandomString();
+        if (PlayerPrefs.HasKey("nickNamePref"))
+        {
+            PhotonNetwork.NickName = PlayerPrefs.GetString("nickNamePref");
+        }
+        else
+        {
+            string nick = RandomString("Guest");
+            PhotonNetwork.NickName = nick;
+            PlayerPrefs.SetString("nickNamePref", nick);
+        }
+
+        nickNameInput.GetComponent<InputField>().text = PhotonNetwork.NickName;
+
         if (isConnecting)
         {
             Debug.Log("Player connected to EU server");
@@ -48,7 +60,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = 5 });
+        PhotonNetwork.CreateRoom(RandomString("Room"), new RoomOptions { MaxPlayers = 5 });
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
@@ -82,6 +94,8 @@ public class MenuScript : MonoBehaviourPunCallbacks
             startGameButton.SetActive(true);
         }
 
+        lobbyToMenuButton.SetActive(true);
+
         UpdatePlayers();
     }
 
@@ -103,6 +117,8 @@ public class MenuScript : MonoBehaviourPunCallbacks
         {
             startGameButton.SetActive(true);
         }
+
+        lobbyToMenuButton.SetActive(true);
 
         UpdatePlayers();
     }
@@ -128,7 +144,6 @@ public class MenuScript : MonoBehaviourPunCallbacks
     {
         lobbyPlayerCountText.GetComponent<Text>().text = PhotonNetwork.PlayerList.Length.ToString() + "/5 players connected.";
         lobbyRoomNameText.GetComponent<Text>().text = PhotonNetwork.CurrentRoom.Name;
-        //playerCountText = PhotonNetwork.PlayerList.Length.ToString();
 
         var children = new List<GameObject>();
         foreach (Transform child in content.transform) children.Add(child.gameObject);
@@ -136,8 +151,8 @@ public class MenuScript : MonoBehaviourPunCallbacks
 
         foreach (Player player in PhotonNetwork.PlayerList)
         {
-            Debug.Log(player.NickName);
-            Instantiate(playerUIPrefab, content.transform);         
+            GameObject clone = Instantiate(playerUIPrefab, content.transform);
+            clone.GetComponent<Text>().text = player.NickName;
         }
     }
     void Awake()
@@ -171,6 +186,8 @@ public class MenuScript : MonoBehaviourPunCallbacks
         volumeText = canvas.transform.Find("volumeText").gameObject;
         volumeSlider = canvas.transform.Find("volumeSlider").gameObject;
         settingsToMenuButton = canvas.transform.Find("settingsToMenuButton").gameObject;
+        nickNameText = canvas.transform.Find("nickNameText").gameObject;
+        nickNameInput = canvas.transform.Find("nickNameInput").gameObject;
 
         quitGameText = canvas.transform.Find("quitGameText").gameObject;
         quitGameConfirmButton = canvas.transform.Find("quitGameConfirmButton").gameObject;
@@ -181,6 +198,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         lobbyPlayerScrollView = canvas.transform.Find("lobbyPlayerScrollView").gameObject;
         startGameButton = canvas.transform.Find("startGameButton").gameObject;
         content = lobbyPlayerScrollView.transform.GetChild(0).GetChild(0).gameObject;
+        lobbyToMenuButton = canvas.transform.Find("lobbyToMenuButton").gameObject;
 
         backgroundMusic = GameObject.Find("backgroundMusic");
         AudioSource audio = backgroundMusic.GetComponent<AudioSource>();
@@ -208,6 +226,8 @@ public class MenuScript : MonoBehaviourPunCallbacks
 
         volumeText.SetActive(false);
         volumeSlider.SetActive(false);
+        nickNameText.SetActive(false);
+        nickNameInput.SetActive(false);
         settingsToMenuButton.SetActive(false);
 
 
@@ -220,13 +240,12 @@ public class MenuScript : MonoBehaviourPunCallbacks
         lobbyPlayerCountText.SetActive(false);
         lobbyPlayerScrollView.SetActive(false);
         startGameButton.SetActive(false);
+        lobbyToMenuButton.SetActive(false);
 
         createGameButton.SetActive(true);
         joinGameButton.SetActive(true);
         settingsButton.SetActive(true);
         quitGameButton.SetActive(true);
-
-
     }
 
     public void onCreateGameButtonPress()
@@ -330,8 +349,20 @@ public class MenuScript : MonoBehaviourPunCallbacks
 
         volumeText.SetActive(true);
         volumeSlider.SetActive(true);
+        nickNameText.SetActive(true);
+        nickNameInput.SetActive(true);
         settingsToMenuButton.SetActive(true);
 
+    }
+
+    public void onNickNameChange()
+    {
+        InputField inputValue = nickNameInput.GetComponent<InputField>();
+        if(inputValue.text != "")
+        {
+            PhotonNetwork.NickName = inputValue.text;
+            PlayerPrefs.SetString("nickNamePref", inputValue.text);
+        }
     }
 
     public void onQuitGameButtonPress()
@@ -351,23 +382,32 @@ public class MenuScript : MonoBehaviourPunCallbacks
         Application.Quit(0);
     }
 
+    public void onLobbyToMenuButtonPress()
+    {
+        if(PhotonNetwork.CurrentRoom != null)
+        {
+            Debug.Log("Leaving room " + PhotonNetwork.CurrentRoom.Name);
+            PhotonNetwork.LeaveRoom();
+        }
+        onMenuEnter();
+    }
+
     public void onStartGameButtonPress()
     {
         Debug.Log("Joining game.");
-        if(PhotonNetwork.IsMasterClient)
-{
+        if(PhotonNetwork.IsMasterClient && PhotonNetwork.PlayerList.Length >= 2)
+        {
             PhotonNetwork.LoadLevel("yes");
         }
     }
-    private string RandomString()
+    private string RandomString(string prefix)
     {
-        const string glyphs = "abcdefghijklmnopqrstuvwxyz0123456789";
         int charAmount = 10;
-        StringBuilder str = new StringBuilder();
+        StringBuilder str = new StringBuilder(prefix);
 
         for (int i = 0; i<charAmount; i++)
         {
-            str.Append(glyphs[Random.Range(0, glyphs.Length)]);
+            str.Append(Random.Range(0,10).ToString());
         }
 
         return str.ToString();

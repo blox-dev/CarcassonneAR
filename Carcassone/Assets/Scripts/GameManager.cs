@@ -24,6 +24,8 @@ public class GameManager : MonoBehaviourPun
     // UI references
     public GameObject confirmTileButton;
     public GameObject skipMeepleButton;
+    public GameObject ScoresUIContent;
+    public GameObject PlayerScoreUIPrefab;
 
     // CoreLogic
     /* shared (pseudo-shared) variables */
@@ -122,7 +124,11 @@ public class GameManager : MonoBehaviourPun
         //Next tile
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
-        CreateSelectionTiles();
+        UpdatePlayerScores();
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == PhotonNetwork.NickName)
+        {
+            CreateSelectionTiles();
+        }
         currentTileObjectRef = null;
     }
 
@@ -355,6 +361,7 @@ public class GameManager : MonoBehaviourPun
         currentTurn++;
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
+        UpdatePlayerScores();                                       
 
         // and everyone should check first if the game is over
         // 5. One of the players prepares the next move
@@ -468,6 +475,21 @@ public class GameManager : MonoBehaviourPun
             Destroy(go);
         }
         selectionMeeples.Clear();
+    }
+
+    void UpdatePlayerScores()
+    {
+        foreach (Transform child in ScoresUIContent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        for (var id = 0; id < playerNamesIndexes.Count; ++id)
+        {
+            var sgo = Instantiate(PlayerScoreUIPrefab, ScoresUIContent.transform);
+            var player = gameRunner.PlayerManager.GetPlayer(id);
+            sgo.GetComponent<Text>().text = playerNamesIndexes[id] + "(" + (MeepleColor)id + ")" + " -- " + player.PlayerPoints;
+        }
     }
 
     // Utils

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
@@ -7,6 +8,7 @@ using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
 using Photon.Pun;
 using LibCarcassonne.ArrayAccessMethods;
+using Photon.Realtime;
 
 public class GameManager : MonoBehaviourPun
 {
@@ -23,10 +25,16 @@ public class GameManager : MonoBehaviourPun
     public GameObject skipMeepleButton;
 
     // CoreLogic
+    /* shared (pseudo-shared) variables */
     GameRunner gameRunner;
     List<TileComponent> tileComponents;
     Tile currentTile;
-    Tile currentPlacedTile;
+    int currentTurn;
+    int totalNumberOfPlayers;
+    
+    Dictionary<int, GameObject> placedMeeples = new Dictionary<int, GameObject>();
+
+    /* local-only variables */
     GameObject currentTileObjectRef;
     (int, int) currentTilePosition;
     int currentTileRotation;
@@ -34,13 +42,9 @@ public class GameManager : MonoBehaviourPun
     
     List<GameObject> selectionTiles = new List<GameObject>();
     List<GameObject> selectionMeeples = new List<GameObject>();
-    Dictionary<int, GameObject> placedMeeples = new Dictionary<int, GameObject>();
     
     int chosenMeepleIndexPosition;
     Vector3 chosenMeeplePosition;
-
-    int currentTurn;
-    int totalNumberOfPlayers;
 
     enum TurnLogicState
     {
@@ -50,6 +54,9 @@ public class GameManager : MonoBehaviourPun
         PLACED_MEEPLE
     };
     TurnLogicState currentState;
+
+    // Network event
+    const byte EventPlayerExecutedMove = 1;
 
     // Main functions
     void Start()
@@ -242,29 +249,78 @@ public class GameManager : MonoBehaviourPun
 
         currentState = TurnLogicState.NONE;
 
+        RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
+        var content = SerializeEventPlayerExecutedMoveData();
+
         // Revert local changes and wait for changes from event
         Destroy(currentTileObjectRef);
         currentTileObjectRef = null;
         DestroyMeeplePositions();
+        chosenMeepleIndexPosition = -1;
 
-        OnEvent(); // cu parametrii
+        PhotonNetwork.RaiseEvent(EventPlayerExecutedMove, content, raiseEventOptions, SendOptions.SendReliable);
     }
 
-    void OnEvent()
+    Dictionary<string, object> SerializeEventPlayerExecutedMoveData()
     {
+        var data = new Dictionary<string, object>() {
+            {"currentTilePosition", new []{currentTilePosition.Item1, currentTilePosition.Item2}},
+            {"currentTileRotation", currentTileRotation},
+            {"CreateTile/tile", currentTile.GetIndex() - 1},
+            {"CreateTile/relativePosition", new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2)},
+            {"CreateTile/rotation", Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f)},
+            {"chosenMeepleIndexPosition", chosenMeepleIndexPosition},
+            {"chosenMeeplePosition", chosenMeeplePosition}
+        };
+
+        return data;
+    }
+
+    Dictionary<string, object> DeserializeEventPlayerExecutedMoveData(object data)
+    {
+        var serDict = (Dictionary<string, object>)data;
+        var content = new Dictionary<string, object>() {
+            {"currentTilePosition", (((int[])serDict["currentTilePosition"])[0], ((int[])serDict["currentTilePosition"])[1])},
+            {"currentTileRotation", serDict["currentTileRotation"]},
+            {"CreateTile/tile", serDict["CreateTile/tile"]},
+            {"CreateTile/relativePosition", serDict["CreateTile/relativePosition"]},
+            {"CreateTile/rotation", serDict["CreateTile/rotation"]},
+            {"chosenMeepleIndexPosition", serDict["chosenMeepleIndexPosition"]},
+            {"chosenMeeplePosition", serDict["chosenMeeplePosition"]}
+        };
+
+        return content;
+    }
+
+    void OnEvent(EventData photonEvent)
+    {
+        if (photonEvent.Code != EventPlayerExecutedMove)
+        { 
+            return;
+        }
+        var data = DeserializeEventPlayerExecutedMoveData(photonEvent.CustomData);
+
+        // 1. Create the tile
         if (false) // if i am this player, dont redo what has already been done
         {
-            gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);       
+            gameRunner.AddTileInPositionAndRotation(
+                currentTile, 
+                ConvertUnityToLibCarcassonneCoords(((int, int))data["currentTilePosition"]),
+                (int)data["currentTileRotation"]
+            );
         }
-        CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
+        CreateTile((int)data["CreateTile/tile"], (Vector3)data["CreateTile/relativePosition"], (Quaternion)data["CreateTile/rotation"]);
         currentTileObjectRef.transform.Find("ArrowPlace").gameObject.SetActive(false);
-        if (chosenMeepleIndexPosition != -1)
+        
+        // 2. Create the meeple
+        if ((int)data["chosenMeepleIndexPosition"] != -1)
         {
             var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
-            gameRunner.PlaceMeeple( meepleToPlace, chosenMeepleIndexPosition);
-            chosenMeepleIndexPosition = -1;
-            CreateMeeple(meepleToPlace.MeepleColor, meepleToPlace.MeepleId, chosenMeeplePosition);
+            gameRunner.PlaceMeeple( meepleToPlace, (int)data["chosenMeepleIndexPosition"]);
+            CreateMeeple(meepleToPlace.MeepleColor, meepleToPlace.MeepleId, (Vector3)data["chosenMeeplePosition"]);
         }
+        
+        // 3. Commit and raise meeple
         var meeplesToRaise = gameRunner.CommitChanges();
         if (meeplesToRaise != null)
         {
@@ -280,16 +336,28 @@ public class GameManager : MonoBehaviourPun
             }
         }
 
+        // 4. Advance the game
         currentTurn++;
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
 
-        // and also now someone should prepare a new move
         // and everyone should check first if the game is over
-        if (true) // my turn
+        // 5. One of the players prepares the next move
+        if (true)
         {
             CreateSelectionTiles();
         }
+    }
+
+    // Networking
+    public void OnEnable()
+    {
+        PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
+    }
+
+    public void OnDisable()
+    {
+        PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
     }
 
     // Object Creation

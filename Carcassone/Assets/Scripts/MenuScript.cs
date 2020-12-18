@@ -395,9 +395,13 @@ public class MenuScript : MonoBehaviourPunCallbacks
     public void onStartGameButtonPress()
     {
         Debug.Log("Joining game.");
-        if(PhotonNetwork.IsMasterClient && PhotonNetwork.PlayerList.Length >= 2)
+        if(PhotonNetwork.IsMasterClient && PhotonNetwork.PlayerList.Length >= 1)
         {
             PhotonNetwork.LoadLevel("yes");
+        }
+        else
+        {
+            Debug.Log("Failed joining room.");
         }
     }
     private string RandomString(string prefix)

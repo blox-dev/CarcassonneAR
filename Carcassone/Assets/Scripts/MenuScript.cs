@@ -397,7 +397,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         Debug.Log("Joining game.");
         if(PhotonNetwork.IsMasterClient && PhotonNetwork.PlayerList.Length >= 1)
         {
-            PhotonNetwork.LoadLevel("yes");
+            PhotonNetwork.LoadLevel("GameRoom");
         }
         else
         {

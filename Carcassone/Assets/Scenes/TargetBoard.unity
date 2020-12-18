@@ -652,6 +652,12 @@ MonoBehaviour:
   MeeplePlacePrefab: {fileID: 1156688384988120647, guid: 385ab5df8d953b445adb33d392b8d3c4,
     type: 3}
   NextTile: {fileID: 1716195527}
+  confirmTileButton: {fileID: 617726924548873323}
+  skipMeepleButton: {fileID: 617726924548873322}
+  ScoresUIContent: {fileID: 617726924548873325}
+  PlayerScoreUIPrefab: {fileID: 8544006566020851756, guid: d299da5e42389734f9889f08807ded6b,
+    type: 3}
+  CurrentTurnUI: {fileID: 617726924548873324}
 --- !u!1 &1852879419
 GameObject:
   m_ObjectHideFlags: 0
@@ -795,6 +801,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1852879425}
     m_Modifications:
+    - target: {fileID: 617726922851761065, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Name
+      value: skipMeepleButton
+      objectReference: {fileID: 0}
     - target: {fileID: 617726923040830768, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -977,3 +988,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ca001aedf57fdc14983f97bdd0cb251d, type: 3}
+--- !u!1 &617726924548873322 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726922851761065, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 617726924548873321}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &617726924548873323 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726924694601609, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 617726924548873321}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &617726924548873324 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726924655922139, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 617726924548873321}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &617726924548873325 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726924693412899, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 617726924548873321}
+  m_PrefabAsset: {fileID: 0}

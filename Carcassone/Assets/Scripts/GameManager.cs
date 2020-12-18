@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviourPun
     public GameObject skipMeepleButton;
     public GameObject ScoresUIContent;
     public GameObject PlayerScoreUIPrefab;
+    public GameObject CurrentTurnUI;
 
     // CoreLogic
     /* shared (pseudo-shared) variables */
@@ -125,6 +126,7 @@ public class GameManager : MonoBehaviourPun
         currentTile = gameRunner.GetCurrentRoundTile();
         SetNextTile(currentTile.GetIndex() - 1);
         UpdatePlayerScores();
+        CurrentTurnUI.GetComponent<Text>().text = "It's " + (MeepleColor)(currentTurn%totalNumberOfPlayers) + " player's turn";
         if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == PhotonNetwork.NickName)
         {
             CreateSelectionTiles();
@@ -360,8 +362,14 @@ public class GameManager : MonoBehaviourPun
         // 4. Advance the game
         currentTurn++;
         currentTile = gameRunner.GetCurrentRoundTile();
+        if (currentTile == null)
+        {
+            Debug.Log("Game ended");
+            return;
+        }
         SetNextTile(currentTile.GetIndex() - 1);
-        UpdatePlayerScores();                                       
+        UpdatePlayerScores();
+        CurrentTurnUI.GetComponent<Text>().text = "It's " + (MeepleColor)(currentTurn % totalNumberOfPlayers) + " player's turn";
 
         // and everyone should check first if the game is over
         // 5. One of the players prepares the next move

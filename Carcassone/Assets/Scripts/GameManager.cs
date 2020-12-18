@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +28,7 @@ public class GameManager : MonoBehaviourPun
     // CoreLogic
     /* shared (pseudo-shared) variables */
     GameRunner gameRunner;
+    Dictionary<int, string> playerNamesIndexes = new Dictionary<int, string>();
     List<TileComponent> tileComponents;
     Tile currentTile;
     int currentTurn;
@@ -63,13 +65,26 @@ public class GameManager : MonoBehaviourPun
     {
         var componentManager = new ComponentManager();
         tileComponents = componentManager.ParseJson("Assets/Scripts/LibCarcassonne/tiles_map.json");
+        //tileComponents = componentManager.ParseJson(Path.Combine(Application.streamingAssetsPath, "tiles_map.json"));
         if (tileComponents.Count != 72)
         {
             throw new Exception("Incorrect number of tiles");
         }
         currentTurn = 0;
-        totalNumberOfPlayers = 5; //todo: add maximum number of players here
-        gameRunner = new GameRunner(tileComponents, numberOfPlayers: 5); 
+        totalNumberOfPlayers = PhotonNetwork.PlayerList.Length;
+        gameRunner = new GameRunner(tileComponents, totalNumberOfPlayers);
+        
+        // Making name indexes map - assigning player ids in case the player list changes (one of the player exits)
+        var playerNames = new List<string>();
+        foreach (var player in PhotonNetwork.PlayerList)
+        {
+            playerNames.Add(player.NickName);
+        }
+        playerNames.Sort();
+        foreach (var pName in playerNames)
+        {
+            playerNamesIndexes.Add(playerNamesIndexes.Count, pName);
+        }
 
         currentState = TurnLogicState.NONE;
         Init();
@@ -301,7 +316,7 @@ public class GameManager : MonoBehaviourPun
         var data = DeserializeEventPlayerExecutedMoveData(photonEvent.CustomData);
 
         // 1. Create the tile
-        if (false) // if i am this player, dont redo what has already been done
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] != PhotonNetwork.NickName) // if i am this player, dont redo what has already been done
         {
             gameRunner.AddTileInPositionAndRotation(
                 currentTile, 
@@ -343,7 +358,7 @@ public class GameManager : MonoBehaviourPun
 
         // and everyone should check first if the game is over
         // 5. One of the players prepares the next move
-        if (true)
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == PhotonNetwork.NickName)
         {
             CreateSelectionTiles();
         }

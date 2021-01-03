@@ -1,19 +1,21 @@
 {
-    "scopedRegistries": [
-        {
-            "name": "Vuforia",
-            "url": "https://registry.packages.developer.vuforia.com/",
-            "scopes": [
-                "com.ptc.vuforia"
-            ]
-		},
-		{
-			"name": "Packages from jillejr",
-			"url": "https://npm.cloudsmith.io/jillejr/newtonsoft-json-for-unity/",
-			"scopes": ["jillejr"]
-		}
-    ],
-    "dependencies": {
+  "scopedRegistries": [
+    {
+      "name": "Vuforia",
+      "url": "https://registry.packages.developer.vuforia.com/",
+      "scopes": [
+        "com.ptc.vuforia"
+      ]
+    },
+    {
+      "name": "Packages from jillejr",
+      "url": "https://npm.cloudsmith.io/jillejr/newtonsoft-json-for-unity/",
+      "scopes": [
+        "jillejr"
+      ]
+    }
+  ],
+  "dependencies": {
     "com.ptc.vuforia.engine": "9.6.3",
     "com.unity.2d.spriteshape": "3.0.14",
     "com.unity.collab-proxy": "1.2.16",
@@ -23,6 +25,9 @@
     "com.unity.textmeshpro": "2.1.1",
     "com.unity.timeline": "1.2.16",
     "com.unity.ugui": "1.0.0",
+    "com.unity.xr.arcore": "2.1.12",
+    "com.unity.xr.arfoundation": "2.1.10",
+    "jillejr.newtonsoft.json-for-unity": "12.0.201",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -53,7 +58,6 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-	"com.unity.modules.xr": "1.0.0",
-	"jillejr.newtonsoft.json-for-unity": "12.0.201"
+    "com.unity.modules.xr": "1.0.0"
   }
 }

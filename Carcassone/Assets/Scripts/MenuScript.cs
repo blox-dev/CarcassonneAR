@@ -397,7 +397,8 @@ public class MenuScript : MonoBehaviourPunCallbacks
         Debug.Log("Joining game.");
         if(PhotonNetwork.IsMasterClient && PhotonNetwork.PlayerList.Length >= 1)
         {
-            PhotonNetwork.LoadLevel("GameRoom");
+            //PhotonNetwork.LoadLevel("GameRoom");
+            PhotonNetwork.LoadLevel("ARF_Board");
         }
         else
         {

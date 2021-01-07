@@ -20,11 +20,16 @@ public class GameManager : MonoBehaviourPun
     public Image NextTile;
 
     // UI references
+    public GameObject canvas;
     public GameObject confirmTileButton;
     public GameObject skipMeepleButton;
     public GameObject ScoresUIContent;
     public GameObject PlayerScoreUIPrefab;
     public GameObject CurrentTurnUI;
+    public GameObject EndGamePanel;
+    public GameObject EndGameContent;
+    public GameObject returnToMenuButton;
+    public GameObject toggleLeaderboardButton;
 
     // CoreLogic
     /* shared (pseudo-shared) variables */
@@ -359,11 +364,16 @@ public class GameManager : MonoBehaviourPun
         }
 
         // 4. Advance the game
+        gameRunner.TriggerEndGame();
+        ShowGameEndScreen();
+        return;
+
         currentTurn++;
         currentTile = gameRunner.GetCurrentRoundTile();
         if (currentTile == null)
         {
-            Debug.Log("Game ended");
+            gameRunner.TriggerEndGame();
+            ShowGameEndScreen();
             return;
         }
         SetNextTile(currentTile.GetIndex() - 1);
@@ -495,10 +505,55 @@ public class GameManager : MonoBehaviourPun
         {
             var sgo = Instantiate(PlayerScoreUIPrefab, ScoresUIContent.transform);
             var player = gameRunner.PlayerManager.GetPlayer(id);
-            sgo.GetComponent<Text>().text = playerNamesIndexes[id] + "(" + (MeepleColor)id + ")" + " -- " + player.PlayerPoints;
+            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.MeepleList.Count + "/6. Score - " + player.PlayerPoints + "\n_____________";
         }
     }
 
+    void ShowGameEndScreen()
+    {
+        foreach(Transform child in canvas.transform)
+        {
+            child.gameObject.SetActive(false);
+        }
+
+        EndGamePanel.SetActive(true);
+        returnToMenuButton.SetActive(true);
+        toggleLeaderboardButton.SetActive(true);
+
+        //must sort scores before showing
+        for (var id = 0; id < playerNamesIndexes.Count; ++id)
+        {
+            var sgo = Instantiate(PlayerScoreUIPrefab, EndGameContent.transform);
+            var player = gameRunner.PlayerManager.GetPlayer(id);
+            string positionText;
+            switch (id+1)
+            {
+                case 1: positionText = "1st"; break;
+                case 2: positionText = "2nd"; break;
+                case 3: positionText = "3rd"; break;
+                default: positionText = (id+1).ToString() + "nd"; break;
+            }
+            sgo.GetComponent<Text>().text = positionText + ". " + playerNamesIndexes[id] + ". Score: " + player.PlayerPoints + "\n_____________";
+        }
+    }
+
+    public void toggleLeaderboard()
+    {
+        if (EndGamePanel.activeSelf == true)
+        {
+            EndGamePanel.SetActive(false);
+        }
+        else
+        {
+            EndGamePanel.SetActive(true);
+        }
+    }
+
+    public void returnToMenu()
+    {
+        PhotonNetwork.LeaveRoom();
+        Application.Quit(0);
+    }
     // Utils
     (int, int) ConvertLibCarcassonneCoordsToUnity((int, int) tuple)
     {

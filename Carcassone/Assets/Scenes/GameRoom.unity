@@ -128,6 +128,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 31380880692353905, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 617726922738869479, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_FontData.m_Font
@@ -369,7 +374,12 @@ PrefabInstance:
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.00002193451
+      value: 0.000007212162
+      objectReference: {fileID: 0}
+    - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
@@ -412,6 +422,112 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: d6a1673a31851fd4395c287261da36e4,
         type: 3}
+    - target: {fileID: 2286982242289806520, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 108
+      objectReference: {fileID: 0}
+    - target: {fileID: 2442111647464189151, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Name
+      value: endGamePanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 2442111647464189151, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3362152083932379676, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 0.7882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 3915898049179808751, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5023947447489025148, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5023947447489025148, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5023947447489025148, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5023947447489025148, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 446923058}
+    - target: {fileID: 5023947447489025148, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: toggleLeaderboard
+      objectReference: {fileID: 0}
+    - target: {fileID: 5023947447489025148, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 5086914938401400543, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5086914938401400543, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5086914938401400543, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5086914938401400543, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 446923058}
+    - target: {fileID: 5086914938401400543, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: returnToMenu
+      objectReference: {fileID: 0}
+    - target: {fileID: 5086914938401400543, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 5194886597899288256, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_FontData.m_FontStyle
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5194886597899288256, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_FontData.m_Font
+      value: 
+      objectReference: {fileID: 12800000, guid: 849f921b7d63ea14b807ed83825fa9ad,
+        type: 3}
+    - target: {fileID: 6070575412542111146, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_Text
+      value: Toggle leaderboard
+      objectReference: {fileID: 0}
+    - target: {fileID: 6998661346629927533, guid: ca001aedf57fdc14983f97bdd0cb251d,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 300
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ca001aedf57fdc14983f97bdd0cb251d, type: 3}
 --- !u!1 &252249742 stripped
@@ -441,6 +557,36 @@ MonoBehaviour:
 --- !u!1 &252249745 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 617726924655922139, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &252249746 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8026155100561027837, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &252249747 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2442111647464189151, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &252249748 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 617726923040830780, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &252249749 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3915898049179808751, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &252249750 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 31380880692353905, guid: ca001aedf57fdc14983f97bdd0cb251d,
     type: 3}
   m_PrefabInstance: {fileID: 252249741}
   m_PrefabAsset: {fileID: 0}
@@ -484,12 +630,17 @@ MonoBehaviour:
   MeeplePlacePrefab: {fileID: 1156688384988120647, guid: 385ab5df8d953b445adb33d392b8d3c4,
     type: 3}
   NextTile: {fileID: 252249744}
+  canvas: {fileID: 252249748}
   confirmTileButton: {fileID: 252249743}
   skipMeepleButton: {fileID: 252249742}
   ScoresUIContent: {fileID: 2047737639}
   PlayerScoreUIPrefab: {fileID: 8544006566020851756, guid: d299da5e42389734f9889f08807ded6b,
     type: 3}
   CurrentTurnUI: {fileID: 252249745}
+  EndGamePanel: {fileID: 252249747}
+  EndGameContent: {fileID: 252249746}
+  returnToMenuButton: {fileID: 252249749}
+  toggleLeaderboardButton: {fileID: 252249750}
 --- !u!4 &446923059
 Transform:
   m_ObjectHideFlags: 0

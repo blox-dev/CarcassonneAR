@@ -8,9 +8,9 @@ using UnityEngine.XR.ARSubsystems;
 public class ARTapToPlace : MonoBehaviour
 {
     public GameObject target;
+    public GameObject canvas;
     private ARRaycastManager arRaycastManager;
     private Vector2 touchPosition;
-    private bool placed = false;
 
     static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
@@ -34,11 +34,6 @@ public class ARTapToPlace : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (placed)
-        {
-            return;
-        }
-        
         if (!TryGetTouchPosition(out Vector2 touchPosition))
         {
             return;
@@ -50,7 +45,14 @@ public class ARTapToPlace : MonoBehaviour
 
             target.SetActive(true);
             target.transform.position = hitPos.position;
-            placed = true;
+            canvas.SetActive(true);
+            var manager = GetComponent<ARPlaneManager>();
+            foreach (var plane in manager.trackables)
+            {
+                plane.gameObject.SetActive(false);
+            }
+            manager.enabled = false;
+            GetComponent<ARTapToPlace>().enabled = false;
         }
     }
 }

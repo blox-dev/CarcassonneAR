@@ -365,8 +365,8 @@ public class GameManager : MonoBehaviourPun
 
         // 4. Advance the game
         gameRunner.TriggerEndGame();
-        ShowGameEndScreen();
-        return;
+        //ShowGameEndScreen();
+        //return;
 
         currentTurn++;
         currentTile = gameRunner.GetCurrentRoundTile();
@@ -505,7 +505,7 @@ public class GameManager : MonoBehaviourPun
         {
             var sgo = Instantiate(PlayerScoreUIPrefab, ScoresUIContent.transform);
             var player = gameRunner.PlayerManager.GetPlayer(id);
-            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.MeepleList.Count + "/6. Score - " + player.PlayerPoints + "\n_____________";
+            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.MeepleList.Count + "/6. Score - " + player.PlayerPoints + "\n";
         }
     }
 
@@ -533,7 +533,7 @@ public class GameManager : MonoBehaviourPun
                 case 3: positionText = "3rd"; break;
                 default: positionText = (id+1).ToString() + "nd"; break;
             }
-            sgo.GetComponent<Text>().text = positionText + ". " + playerNamesIndexes[id] + ". Score: " + player.PlayerPoints + "\n_____________";
+            sgo.GetComponent<Text>().text = positionText + ". " + playerNamesIndexes[id] + ". Score: " + player.PlayerPoints + "\n";
         }
     }
 

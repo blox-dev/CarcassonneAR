@@ -505,7 +505,7 @@ public class GameManager : MonoBehaviourPun
         {
             var sgo = Instantiate(PlayerScoreUIPrefab, ScoresUIContent.transform);
             var player = gameRunner.PlayerManager.GetPlayer(id);
-            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.MeepleList.Count + "/6. Score - " + player.PlayerPoints + "\n_____________";
+            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.GetPlayerUsableMeeples() + "/6. Score - " + player.PlayerPoints + "\n_____________";
         }
     }
 

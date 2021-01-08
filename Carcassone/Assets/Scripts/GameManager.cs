@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviourPun
     public GameObject MeeplePrefab;
     public GameObject MeeplePlacePrefab;
     public Image NextTile;
+    public Text TilesLeft;
 
     // UI references
     public GameObject canvas;
@@ -452,6 +453,8 @@ public class GameManager : MonoBehaviourPun
         {
             NextTile.sprite = sprite;
         }
+
+        TilesLeft.text = gameRunner.UnplayedTiles.Count + " tiles left";
     }
 
     void DestroySelectionTiles()
@@ -505,7 +508,7 @@ public class GameManager : MonoBehaviourPun
         {
             var sgo = Instantiate(PlayerScoreUIPrefab, ScoresUIContent.transform);
             var player = gameRunner.PlayerManager.GetPlayer(id);
-            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.MeepleList.Count + "/6. Score - " + player.PlayerPoints + "\n";
+            sgo.GetComponent<Text>().text = "<color=" + ((MeepleColor)id).ToString().ToLower() + ">" + playerNamesIndexes[id] + "</color> Meeples:" + player.GetPlayerUsableMeeples() + "/6. Score - " + player.PlayerPoints + "\n";
         }
     }
 

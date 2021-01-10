@@ -104,6 +104,45 @@ public class GameManager : MonoBehaviourPun
         Init();
     }
 
+    bool GetAIMove(out (int, int) move, out int rotation)
+    {
+        var list = gameRunner.GetFreePositionsForTile(currentTile);
+        if (list.Count == 0)
+        {
+            move = (0, 0);
+            rotation = 0;
+            return false;
+        }
+        var rand = new System.Random();
+        var index = rand.Next(0, list.Count - 1);
+        move = ConvertLibCarcassonneCoordsToUnity(list[index].Item1);
+        rotation = list[index].Item2[0];
+        return true;
+    }
+
+    void DoAIAction()
+    {
+        if (!GetAIMove(out currentTilePosition, out currentTileRotation))
+        {
+            Debug.LogError("AI Move failed");
+        }
+
+        var possiblePositionsForMeeple = gameRunner.AddTileInPositionAndRotation(currentTile, (ConvertUnityToLibCarcassonneCoords(currentTilePosition)), currentTileRotation);
+        var meepleToPlace = gameRunner.PlayerManager.GetPlayer(currentTurn % totalNumberOfPlayers).GetFreeMeeple();
+        CreateTile(currentTile.GetIndex() - 1, new Vector3(currentTilePosition.Item1, 0, currentTilePosition.Item2), Quaternion.Euler(0.0f, currentTileRotation * 90, 0.0f));
+        DestroySelectionTiles();
+
+        if (possiblePositionsForMeeple != null && meepleToPlace != null)
+        {
+            chosenMeepleIndexPosition = possiblePositionsForMeeple[0];
+            var component = tileComponents[currentTile.GetIndex() - 1];
+            var feature = component.Types[chosenMeepleIndexPosition];
+            chosenMeeplePosition = new Vector3(feature.Center[0] * 0.5f - 0.22f, 0, feature.Center[1] * 0.5f - 0.22f); //vezi featureClone.transform.localPosition.y daca == 0
+        }
+        currentState = TurnLogicState.PLACED_MEEPLE;
+        CommitMove();
+    }
+
     void Update()
     {
 #if UNITY_EDITOR
@@ -173,6 +212,12 @@ public class GameManager : MonoBehaviourPun
             CreateSelectionTiles();
         }
         currentTileObjectRef = null;
+        
+        // Do AI move
+        if (true) //PLAYER IS AI
+        {
+            DoAIAction();
+        }
     }
 
     void CheckInteractionWithBoard()
@@ -411,6 +456,7 @@ public class GameManager : MonoBehaviourPun
         {
             gameRunner.TriggerEndGame();
             ShowGameEndScreen();
+            enabled = false;
             return;
         }
         SetNextTile(currentTile.GetIndex() - 1);
@@ -422,6 +468,12 @@ public class GameManager : MonoBehaviourPun
         if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == PhotonNetwork.NickName)
         {
             CreateSelectionTiles();
+        }
+
+        // 6. If next player is AI, get an AI move
+        if (true) //PLAYER IS AI
+        {
+            DoAIAction();
         }
     }
 

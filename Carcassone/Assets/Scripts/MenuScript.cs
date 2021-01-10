@@ -399,6 +399,7 @@ public class MenuScript : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.LoadLevel("GameRoom");
             //PhotonNetwork.LoadLevel("ARF_Board");
+            enabled = false;
         }
         else
         {

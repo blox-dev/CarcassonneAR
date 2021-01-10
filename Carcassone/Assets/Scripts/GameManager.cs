@@ -401,7 +401,7 @@ public class GameManager : MonoBehaviourPun
         }
 
         // 4. Advance the game
-        gameRunner.TriggerEndGame();
+        //gameRunner.TriggerEndGame();
         //ShowGameEndScreen();
         //return;
 

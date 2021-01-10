@@ -549,6 +549,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 231871307}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &231871318 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 617726922674855986, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 231871307}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &479685625
 GameObject:
   m_ObjectHideFlags: 0
@@ -960,6 +972,7 @@ MonoBehaviour:
   MeeplePlacePrefab: {fileID: 1156688384988120647, guid: 385ab5df8d953b445adb33d392b8d3c4,
     type: 3}
   NextTile: {fileID: 231871310}
+  TilesLeft: {fileID: 231871318}
   canvas: {fileID: 231871313}
   confirmTileButton: {fileID: 231871309}
   skipMeepleButton: {fileID: 231871308}
@@ -971,6 +984,7 @@ MonoBehaviour:
   EndGameContent: {fileID: 231871316}
   returnToMenuButton: {fileID: 231871314}
   toggleLeaderboardButton: {fileID: 231871315}
+  cameraSpeed: 0.1
 --- !u!4 &1783839804
 Transform:
   m_ObjectHideFlags: 0

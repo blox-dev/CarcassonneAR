@@ -32,6 +32,10 @@ public class GameManager : MonoBehaviourPun
     public GameObject returnToMenuButton;
     public GameObject toggleLeaderboardButton;
 
+    // Other objects
+    private Camera mCamera;
+    public float cameraSpeed = 0.1f;
+
     // CoreLogic
     /* shared (pseudo-shared) variables */
     GameRunner gameRunner;
@@ -70,6 +74,8 @@ public class GameManager : MonoBehaviourPun
     // Main functions
     void Start()
     {
+        mCamera = Camera.main;
+            
         var componentManager = new ComponentManager();
         //tileComponents = componentManager.ParseJson("Assets/Scripts/LibCarcassonne/tiles_map.json");
         //tileComponents = componentManager.ParseJson(Path.Combine(Application.streamingAssetsPath, "tiles_map.json"));
@@ -100,6 +106,36 @@ public class GameManager : MonoBehaviourPun
 
     void Update()
     {
+#if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            var pos = mCamera.gameObject.transform.position;
+            Vector3 newPos = pos;
+            newPos.x -= cameraSpeed;
+            mCamera.gameObject.transform.position = newPos;
+        }
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
+            var pos = mCamera.gameObject.transform.position;
+            Vector3 newPos = pos;
+            newPos.x += cameraSpeed;
+            mCamera.gameObject.transform.position = newPos;
+        }
+        if (Input.GetKey(KeyCode.DownArrow))
+        {
+            var pos = mCamera.gameObject.transform.position;
+            Vector3 newPos = pos;
+            newPos.z -= cameraSpeed;
+            mCamera.gameObject.transform.position = newPos;
+        }
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
+            var pos = mCamera.gameObject.transform.position;
+            Vector3 newPos = pos;
+            newPos.z += cameraSpeed;
+            mCamera.gameObject.transform.position = newPos;
+        }
+#endif
         if (/*is this player's turn && */Input.GetMouseButtonDown(0))
         {
             CheckInteractionWithBoard();

@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
+using UnityEngine.XR.WSA.Input;
+
 #if ONLINE_MODE
 using ExitGames.Client.Photon;
 using Photon.Pun;
@@ -87,6 +89,7 @@ public class GameManager
     public Button Strategy3Button;
     private string currentHeuristic = "a";
     public Text heurText;
+    System.Data.DataTable table = new System.Data.DataTable();
 
     // Main functions
     void Start()
@@ -132,12 +135,6 @@ public class GameManager
         {
             heurText.text = currentHeuristic;
         }
-
-        System.Data.DataTable table = new System.Data.DataTable();
-
-        string expression = "(a + 1) * 2 / 4".Replace("a", 2.ToString());
-        var x = table.Compute(expression, "");
-        Debug.Log(x);
     }
 
     bool GetAIMove(out (int, int) move, out int rotation)
@@ -749,7 +746,23 @@ public class GameManager
 
     public void ChangeHeuristic(string newHeuristic)
     {
-        var failed = true;
+        var failed = false;
+
+        try
+        {
+            table.Compute(newHeuristic.Replace("aiReward", 0.ToString()).Replace("othersReward", 0.ToString()), "");
+
+            Func<int, int, int> heuristic = (int aiReward, int othersReward) => {
+                var expression = newHeuristic.Replace("aiReward", aiReward.ToString()).Replace("othersReward", othersReward.ToString());
+                Debug.Log(expression);
+                return 1;//Convert.ToInt32(table.Compute(expression, ""));
+            };
+            gameRunner.AI.heuristic = heuristic.Invoke;
+        }
+        catch (Exception)
+        {
+            failed = true;
+        }
 
         if (failed)
         {

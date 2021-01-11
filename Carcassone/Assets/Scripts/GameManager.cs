@@ -136,17 +136,10 @@ public class GameManager
 
     bool GetAIMove(out (int, int) move, out int rotation)
     {
-        var list = gameRunner.GetFreePositionsForTile(currentTile);
-        if (list.Count == 0)
-        {
-            move = (0, 0);
-            rotation = 0;
-            return false;
-        }
-        var rand = new System.Random();
-        var index = rand.Next(0, list.Count - 1);
-        move = ConvertLibCarcassonneCoordsToUnity(list[index].Item1);
-        rotation = list[index].Item2[0];
+        var aiPrediction = gameRunner.AI.Predict(currentTile: currentTile);
+        
+        move = ConvertLibCarcassonneCoordsToUnity(aiPrediction.Item1);
+        rotation = aiPrediction.Item2;
         return true;
     }
 

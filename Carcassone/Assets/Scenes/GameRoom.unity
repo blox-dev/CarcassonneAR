@@ -504,12 +504,12 @@ PrefabInstance:
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000007212162
+      value: 0.00072011177
       objectReference: {fileID: 0}
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 0.00024414062
       objectReference: {fileID: 0}
     - target: {fileID: 617726924694601611, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
@@ -732,6 +732,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &252249752 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5482928371092994325, guid: ca001aedf57fdc14983f97bdd0cb251d,
+    type: 3}
+  m_PrefabInstance: {fileID: 252249741}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &262362968
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,6 +967,7 @@ MonoBehaviour:
   EndGameContent: {fileID: 252249746}
   returnToMenuButton: {fileID: 252249749}
   toggleLeaderboardButton: {fileID: 252249750}
+  AIPredictionScoreText: {fileID: 252249752}
   cameraSpeed: 0.1
   Strategy1Button: {fileID: 125653904}
   Strategy2Button: {fileID: 2122863021}

@@ -8,7 +8,7 @@ using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
 using UnityEngine.XR.WSA.Input;
-
+using UnityEngine.EventSystems;
 #if ONLINE_MODE
 using ExitGames.Client.Photon;
 using Photon.Pun;
@@ -42,6 +42,7 @@ public class GameManager
     public GameObject EndGameContent;
     public GameObject returnToMenuButton;
     public GameObject toggleLeaderboardButton;
+    public GameObject AIPredictionScoreText;
 
     // Other objects
     private Camera mCamera;
@@ -141,7 +142,7 @@ public class GameManager
     bool GetAIMove(out (int, int) move, out int rotation)
     {
         var aiPrediction = gameRunner.AI.Predict(currentTile: currentTile);
-        
+        AIPredictionScoreText.GetComponent<Text>().text = "AI Predicted score: " + "?";
         move = ConvertLibCarcassonneCoordsToUnity(aiPrediction.Item1);
         rotation = aiPrediction.Item2;
         return true;
@@ -208,7 +209,10 @@ public class GameManager
 #endif
         if (/*is this player's turn && */Input.GetMouseButtonDown(0))
         {
-            CheckInteractionWithBoard();
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                CheckInteractionWithBoard();
+            }
         }
     }
 
@@ -724,6 +728,7 @@ public class GameManager
     public void SelectStrategy1()
     {
         AIStrategyIndex = 1;
+        this.gameRunner.AI.ChangeDifficulty(1);
         Strategy1Button.interactable = false;
         Strategy2Button.interactable = true;
         Strategy3Button.interactable = true;
@@ -732,6 +737,7 @@ public class GameManager
     public void SelectStrategy2()
     {
         AIStrategyIndex = 2;
+        this.gameRunner.AI.ChangeDifficulty(2);
         Strategy1Button.interactable = true;
         Strategy2Button.interactable = false;
         Strategy3Button.interactable = true;
@@ -740,6 +746,7 @@ public class GameManager
     public void SelectStrategy3()
     {
         AIStrategyIndex = 3;
+        this.gameRunner.AI.ChangeDifficulty(3);
         Strategy1Button.interactable = true;
         Strategy2Button.interactable = true;
         Strategy3Button.interactable = false;

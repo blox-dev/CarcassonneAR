@@ -157,10 +157,14 @@ public class GameManager
 
         if (possiblePositionsForMeeple != null && meepleToPlace != null)
         {
-            chosenMeepleIndexPosition = possiblePositionsForMeeple[0];
-            var component = tileComponents[currentTile.GetIndex() - 1];
-            var feature = component.Types[chosenMeepleIndexPosition];
-            chosenMeeplePosition = new Vector3(feature.Center[0] * 0.5f - 0.22f, 0, feature.Center[1] * 0.5f - 0.22f); //vezi featureClone.transform.localPosition.y daca == 0
+            var aiMeepleChoice = gameRunner.AI.ChooseMeeplePlacement(possiblePositionsForMeeple);
+            if (aiMeepleChoice != -1)
+            {
+                chosenMeepleIndexPosition = possiblePositionsForMeeple[aiMeepleChoice];
+                var component = tileComponents[currentTile.GetIndex() - 1];
+                var feature = component.Types[chosenMeepleIndexPosition];
+                chosenMeeplePosition = new Vector3(feature.Center[0] * 0.5f - 0.22f, 0, feature.Center[1] * 0.5f - 0.22f); //vezi featureClone.transform.localPosition.y daca == 0
+            }
         }
         currentState = TurnLogicState.PLACED_MEEPLE;
         CommitMove();

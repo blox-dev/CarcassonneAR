@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
-using UnityEngine.XR.WSA.Input;
 
 #if ONLINE_MODE
 using ExitGames.Client.Photon;
@@ -89,6 +88,7 @@ public class GameManager
     public Button Strategy3Button;
     private string currentHeuristic = "aiReward * aiReward - othersReward";
     public Text heurText;
+    public Text placeholder;
     System.Data.DataTable table = new System.Data.DataTable();
 
     // Main functions
@@ -134,7 +134,7 @@ public class GameManager
         if (heurText)
         {
             Debug.Log(currentHeuristic);
-            heurText.text = currentHeuristic;
+            placeholder.text = currentHeuristic;
         }
     }
 

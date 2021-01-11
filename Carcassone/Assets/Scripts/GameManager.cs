@@ -87,7 +87,7 @@ public class GameManager
     public Button Strategy1Button;
     public Button Strategy2Button;
     public Button Strategy3Button;
-    private string currentHeuristic = "a";
+    private string currentHeuristic = "aiReward * aiReward - othersReward";
     public Text heurText;
     System.Data.DataTable table = new System.Data.DataTable();
 
@@ -133,6 +133,7 @@ public class GameManager
 
         if (heurText)
         {
+            Debug.Log(currentHeuristic);
             heurText.text = currentHeuristic;
         }
     }
@@ -744,18 +745,19 @@ public class GameManager
         Strategy3Button.interactable = false;
     }
 
-    public void ChangeHeuristic(string newHeuristic)
+    public void ChangeHeuristic(String param)
     {
+        var newHeuristic = heurText.text;
         var failed = false;
 
         try
         {
-            table.Compute(newHeuristic.Replace("aiReward", 0.ToString()).Replace("othersReward", 0.ToString()), "");
+            var x = Convert.ToInt32(table.Compute(newHeuristic.Replace("aiReward", 0.ToString()).Replace("othersReward", 0.ToString()), ""));
 
             Func<int, int, int> heuristic = (int aiReward, int othersReward) => {
                 var expression = newHeuristic.Replace("aiReward", aiReward.ToString()).Replace("othersReward", othersReward.ToString());
                 Debug.Log(expression);
-                return 1;//Convert.ToInt32(table.Compute(expression, ""));
+                return Convert.ToInt32(table.Compute(expression, ""));
             };
             gameRunner.AI.heuristic = heuristic.Invoke;
         }

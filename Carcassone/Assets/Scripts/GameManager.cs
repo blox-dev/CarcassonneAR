@@ -1,15 +1,24 @@
-﻿using System;
+﻿//#define ONLINE_MODE
+
+using System;
 using System.Collections.Generic;
-using ExitGames.Client.Photon;
 using UnityEngine;
 using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
+#if ONLINE_MODE
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
+#endif
 
-public class GameManager : MonoBehaviourPun
+public class GameManager
+#if ONLINE_MODE
+    : MonoBehaviourPun
+#else
+    : MonoBehaviour
+#endif
 {
     // Board objects
     public GameObject TileRoot;
@@ -70,6 +79,14 @@ public class GameManager : MonoBehaviourPun
 
     // Network event
     const byte EventPlayerExecutedMove = 1;
+    
+    // AI
+    private int AIStrategyIndex = 1;
+    public Button Strategy1Button;
+    public Button Strategy2Button;
+    public Button Strategy3Button;
+    private string currentHeuristic = "a";
+    public Text heurText;
 
     // Main functions
     void Start()
@@ -85,23 +102,36 @@ public class GameManager : MonoBehaviourPun
             throw new Exception("Incorrect number of tiles");
         }
         currentTurn = 0;
+#if ONLINE_MODE
         totalNumberOfPlayers = PhotonNetwork.PlayerList.Length;
+#else
+        totalNumberOfPlayers = 2;
+#endif
         gameRunner = new GameRunner(tileComponents, totalNumberOfPlayers);
         
         // Making name indexes map - assigning player ids in case the player list changes (one of the player exits)
         var playerNames = new List<string>();
+#if ONLINE_MODE
         foreach (var player in PhotonNetwork.PlayerList)
         {
             playerNames.Add(player.NickName);
         }
+#else
+        playerNames.Add("Player");
+        playerNames.Add("AI");
+#endif
         playerNames.Sort();
         foreach (var pName in playerNames)
         {
             playerNamesIndexes.Add(playerNamesIndexes.Count, pName);
         }
 
-        currentState = TurnLogicState.NONE;
         Init();
+
+        if (heurText)
+        {
+            heurText.text = currentHeuristic;
+        }
     }
 
     bool GetAIMove(out (int, int) move, out int rotation)
@@ -191,6 +221,7 @@ public class GameManager : MonoBehaviourPun
     // STATE NONE:
     void Init()
     {
+        currentState = TurnLogicState.NONE;
         confirmTileButton.SetActive(false);
         skipMeepleButton.SetActive(false);
 
@@ -207,14 +238,21 @@ public class GameManager : MonoBehaviourPun
         SetNextTile(currentTile.GetIndex() - 1);
         UpdatePlayerScores();
         CurrentTurnUI.GetComponent<Text>().text = "It's " + (MeepleColor)(currentTurn%totalNumberOfPlayers) + " player's turn";
+#if ONLINE_MODE
         if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == PhotonNetwork.NickName)
         {
             CreateSelectionTiles();
         }
+#else
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == "Player")
+        {
+            CreateSelectionTiles();
+        }
+#endif
         currentTileObjectRef = null;
         
         // Do AI move
-        if (true) //PLAYER IS AI
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == "AI")
         {
             DoAIAction();
         }
@@ -358,7 +396,6 @@ public class GameManager : MonoBehaviourPun
 
         currentState = TurnLogicState.NONE;
 
-        RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
         var content = SerializeEventPlayerExecutedMoveData();
 
         // Revert local changes and wait for changes from event
@@ -367,7 +404,12 @@ public class GameManager : MonoBehaviourPun
         DestroyMeeplePositions();
         chosenMeepleIndexPosition = -1;
 
+#if ONLINE_MODE
+        RaiseEventOptions raiseEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
         PhotonNetwork.RaiseEvent(EventPlayerExecutedMove, content, raiseEventOptions, SendOptions.SendReliable);
+#else
+        OnEvent(content);
+#endif
     }
 
     Dictionary<string, object> SerializeEventPlayerExecutedMoveData()
@@ -401,16 +443,28 @@ public class GameManager : MonoBehaviourPun
         return content;
     }
 
-    void OnEvent(EventData photonEvent)
+    void OnEvent(
+#if ONLINE_MODE
+        EventData photonEvent
+#else
+        Dictionary<string, object> data
+#endif
+    )
     {
+#if ONLINE_MODE
         if (photonEvent.Code != EventPlayerExecutedMove)
         { 
             return;
         }
         var data = DeserializeEventPlayerExecutedMoveData(photonEvent.CustomData);
+#endif
 
         // 1. Create the tile
+#if ONLINE_MODE
         if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] != PhotonNetwork.NickName) // if i am this player, dont redo what has already been done
+#else
+        if (false)
+#endif
         {
             gameRunner.AddTileInPositionAndRotation(
                 currentTile, 
@@ -465,13 +519,17 @@ public class GameManager : MonoBehaviourPun
 
         // and everyone should check first if the game is over
         // 5. One of the players prepares the next move
+#if ONLINE_MODE
         if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == PhotonNetwork.NickName)
+#else
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == "Player")
+#endif
         {
             CreateSelectionTiles();
         }
 
         // 6. If next player is AI, get an AI move
-        if (true) //PLAYER IS AI
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == "AI")
         {
             DoAIAction();
         }
@@ -480,12 +538,16 @@ public class GameManager : MonoBehaviourPun
     // Networking
     public void OnEnable()
     {
+#if ONLINE_MODE
         PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
+#endif
     }
 
     public void OnDisable()
     {
+#if ONLINE_MODE
         PhotonNetwork.NetworkingClient.EventReceived -= OnEvent;
+#endif
     }
 
     // Object Creation
@@ -642,7 +704,9 @@ public class GameManager : MonoBehaviourPun
 
     public void returnToMenu()
     {
+#if ONLINE_MODE
         PhotonNetwork.LeaveRoom();
+#endif
         Application.Quit(0);
     }
     // Utils
@@ -654,6 +718,47 @@ public class GameManager : MonoBehaviourPun
     (int, int) ConvertUnityToLibCarcassonneCoords((int, int) tuple)
     {
         return (72 - tuple.Item2, 72 + tuple.Item1);
+    }
+
+    public void SelectStrategy1()
+    {
+        AIStrategyIndex = 1;
+        Strategy1Button.interactable = false;
+        Strategy2Button.interactable = true;
+        Strategy3Button.interactable = true;
+    }
+
+    public void SelectStrategy2()
+    {
+        AIStrategyIndex = 2;
+        Strategy1Button.interactable = true;
+        Strategy2Button.interactable = false;
+        Strategy3Button.interactable = true;
+    }
+
+    public void SelectStrategy3()
+    {
+        AIStrategyIndex = 3;
+        Strategy1Button.interactable = true;
+        Strategy2Button.interactable = true;
+        Strategy3Button.interactable = false;
+    }
+
+    public void ChangeHeuristic(string newHeuristic)
+    {
+        var failed = true;
+
+        if (failed)
+        {
+            heurText.text = currentHeuristic;
+            heurText.color = Color.red;
+        }
+        else
+        {
+            heurText.text = newHeuristic;
+            currentHeuristic = newHeuristic;
+            heurText.color = Color.black;
+        }
     }
 
     string tilesJsonRaw = "[{ \"name\": \"tile1\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.2], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.7], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.7], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile2\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.2], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.7], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.7], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.7], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile3\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.2], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.7], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.7], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.7], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile4\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 1], [0, 0, 0, 1, 1], [0, 0, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile5\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 1], [0, 0, 0, 1, 1], [0, 0, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile6\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 1], [0, 0, 0, 1, 1], [0, 0, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile7\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 1], [0, 0, 0, 1, 1], [0, 0, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile8\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 1], [0, 0, 0, 1, 1], [0, 0, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile9\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 1, 1], [0, 0, 1, 2, 2], [0, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.8], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.3, -0.3], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile10\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 1, 1], [0, 0, 1, 2, 2], [0, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.8], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.3, -0.3], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile11\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 1, 1], [0, 0, 1, 2, 2], [0, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.8], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.3, -0.3], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile12\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 1, 1], [0, 0, 1, 2, 2], [0, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.8], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.3, -0.3], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile13\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 1, 1], [0, 0, 1, 2, 2], [0, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [-0.5, 0.5], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [-0.5, -0.8], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.3, -0.3], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile14\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.9], \"neighbour\": [1] }, { \"type\": \"city\", \"center\": [0, 0], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.9], \"neighbour\": [1] }], \"note\": \"\" }, { \"name\": \"tile15\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.9], \"neighbour\": [1] }, { \"type\": \"city\", \"center\": [0, 0], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.9], \"neighbour\": [1] }], \"note\": \"\" }, { \"name\": \"tile16\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.9], \"neighbour\": [1] }, { \"type\": \"city\", \"center\": [0, 0], \"shield\": true, \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.9], \"neighbour\": [1] }], \"note\": \"\" }, { \"name\": \"tile17\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 2, 2, 2, 2], [1, 2, 2, 2, 2], [1, 2, 2, 2, 2], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"city\", \"center\": [-0.9, 0], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.3, -0.3], \"neighbour\": [0, 1] }], \"note\": \"\" }, { \"name\": \"tile18\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 2, 2, 2, 2], [1, 2, 2, 2, 2], [1, 2, 2, 2, 2], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"city\", \"center\": [-0.9, 0], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0.3, -0.3], \"neighbour\": [0, 1] }], \"note\": \"\" }, { \"name\": \"tile19\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, 0], \"neighbour\": [0, 2] }, { \"type\": \"city\", \"center\": [0, -0.9], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile20\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, 0], \"neighbour\": [0, 2] }, { \"type\": \"city\", \"center\": [0, -0.9], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile21\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 2, 2, 2, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, 0], \"neighbour\": [0, 2] }, { \"type\": \"city\", \"center\": [0, -0.9], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile22\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.1], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile23\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.1], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile24\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.1], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile25\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.1], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile26\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9], \"neighbour\": [] }, { \"type\": \"field\", \"center\": [0, -0.1], \"neighbour\": [0] }], \"note\": \"\" }, { \"name\": \"tile27\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [2, 2, 2, 1, 1], [3, 3, 2, 1, 1], [-1, 3, 2, 1, 1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0.6, -0.1], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.1, 0] }, { \"type\": \"field\", \"center\": [-0.6, -0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile28\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [2, 2, 2, 1, 1], [3, 3, 2, 1, 1], [-1, 3, 2, 1, 1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0.6, -0.1], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.1, 0] }, { \"type\": \"field\", \"center\": [-0.6, -0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile29\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [2, 2, 2, 1, 1], [3, 3, 2, 1, 1], [-1, 3, 2, 1, 1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0.6, -0.1], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.1, 0] }, { \"type\": \"field\", \"center\": [-0.6, -0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile30\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 2, 2, 2], [1, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.2, 0] }, { \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile31\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 2, 2, 2], [1, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0.2, 0] }, { \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile32\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 0, 1, 1], [1, 1, 2, 2, 2], [1, 1, 2, 3, 3], [-1, 1, 2, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.1,-0.2] }, { \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile33\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, -1, 3, 3], [4, 4, 5, 6, 6], [-1, 4, 5, 6, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [-0.7, 0.3], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.5, 0] }, { \"type\": \"road\", \"center\": [0.5, 0] }, { \"type\": \"field\", \"center\": [-0.5, -0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, -0.5] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile34\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, -1, 3, 3], [4, 4, 5, 6, 6], [-1, 4, 5, 6, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [-0.7, 0.3], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.5, 0] }, { \"type\": \"road\", \"center\": [0.5, 0] }, { \"type\": \"field\", \"center\": [-0.5, -0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, -0.5] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile35\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, -1, 3, 3], [4, 4, 5, 6, 6], [-1, 4, 5, 6, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [-0.7, 0.3], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [-0.5, 0] }, { \"type\": \"road\", \"center\": [0.5, 0] }, { \"type\": \"field\", \"center\": [-0.5, -0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, -0.5] }, { \"type\": \"field\", \"center\": [0.5, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile36\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [-1, 3, 3, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0, 0.2], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.1] }, { \"type\": \"field\", \"center\": [0, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile37\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [-1, 3, 3, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0, 0.2], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.1] }, { \"type\": \"field\", \"center\": [0, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile38\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [-1, 3, 3, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0, 0.2], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.1] }, { \"type\": \"field\", \"center\": [0, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile39\", \"matrix\": [ [-1, 0, 0, 0, -1], [1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [-1, 3, 3, 3, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0.9] }, { \"type\": \"field\", \"center\": [0, 0.2], \"neighbour\": [0] }, { \"type\": \"road\", \"center\": [0, -0.1] }, { \"type\": \"field\", \"center\": [0, -0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile40\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile41\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile42\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile43\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile44\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile45\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile46\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile47\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [0, 0, 1, 2, 2], [-1, 0, 1, 2, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.6, 0], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0.5, 0], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile48\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [-0.5, 0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile49\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.2,-0.2] }, { \"type\": \"field\", \"center\": [-0.6,-0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile50\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [-0.5, 0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile51\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [-0.5, 0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile52\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [-0.5, 0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile53\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [-0.5, 0.5], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile54\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.2,-0.2] }, { \"type\": \"field\", \"center\": [-0.6,-0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile55\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.2,-0.2] }, { \"type\": \"field\", \"center\": [-0.6,-0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile56\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [2, 2, 1, 0, 0], [-1, 2, 1, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.6, 0.6], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.2,-0.2] }, { \"type\": \"field\", \"center\": [-0.6,-0.6], \"neighbour\": [] }], \"note\": \"\" }, { \"name\": \"tile57\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, -1, 2, 2], [3, 3, 4, 5, 5], [-1, 3, 4, 5, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.7, 0] }, { \"type\": \"road\", \"center\": [0.7, 0] }, { \"type\": \"field\", \"center\": [-0.7, -0.7], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0.8] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"centrele poate\" }, { \"name\": \"tile58\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, -1, 2, 2], [3, 3, 4, 5, 5], [-1, 3, 4, 5, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.7, 0] }, { \"type\": \"road\", \"center\": [0.7, 0] }, { \"type\": \"field\", \"center\": [-0.7, -0.7], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0.8] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"centrele poate\" }, { \"name\": \"tile59\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, -1, 2, 2], [3, 3, 4, 5, 5], [-1, 3, 4, 5, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.7, 0] }, { \"type\": \"road\", \"center\": [0.7, 0] }, { \"type\": \"field\", \"center\": [-0.7, -0.7], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0.8] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"centrele poate\" }, { \"name\": \"tile60\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [1, 1, -1, 2, 2], [3, 3, 4, 5, 5], [-1, 3, 4, 5, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0, 0.5], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.7, 0] }, { \"type\": \"road\", \"center\": [0.7, 0] }, { \"type\": \"field\", \"center\": [-0.7, -0.7], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0.8] }, { \"type\": \"field\", \"center\": [0.7, -0.7], \"neighbour\": [] }], \"note\": \"centrele poate\" }, { \"name\": \"tile61\", \"matrix\": [ [-1, 0, 1, 2, -1], [0, 0, 1, 2, 2], [3, 3, -1, 4, 4], [5, 5, 6, 7, 7], [-1, 5, 6, 7, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [-0.8, 0.8], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0.7] }, { \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [-0.7, 0] }, { \"type\": \"road\", \"center\": [0.7, 0] }, { \"type\": \"field\", \"center\": [-0.8, -0.8], \"neighbour\": [] }, { \"type\": \"road\", \"center\": [0, 0.7] }, { \"type\": \"field\", \"center\": [0.8, -0.8], \"neighbour\": [] }], \"note\": \"centrele poate\" }, { \"name\": \"tile62\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [-1, 0, 0, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"monastery\", \"center\": [0, 0] }], \"note\": \"-\" }, { \"name\": \"tile63\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [-1, 0, 0, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"monastery\", \"center\": [0, 0] }], \"note\": \"-\" }, { \"name\": \"tile64\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [-1, 0, 0, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"monastery\", \"center\": [0, 0] }], \"note\": \"-\" }, { \"name\": \"tile65\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [-1, 0, 0, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"monastery\", \"center\": [0, 0] }], \"note\": \"-\" }, { \"name\": \"tile66\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 2, 0, 0], [-1, 0, 2, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"monastery\", \"center\": [0, 0] }, { \"type\": \"road\", \"center\": [0.3, -0.6] }], \"note\": \"-\" }, { \"name\": \"tile67\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 2, 0, 0], [-1, 0, 2, 0, -1] ], \"types\": [{ \"type\": \"field\", \"center\": [0.8, 0.8], \"neighbour\": [] }, { \"type\": \"monastery\", \"center\": [0, 0] }, { \"type\": \"road\", \"center\": [0.3, -0.6] }], \"note\": \"-\" }, { \"name\": \"tile68\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 0, 0, 0, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0], \"shield\": true }], \"note\": \"-\" }, { \"name\": \"tile69\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0, 0.7], \"neighbour\": [0] }], \"note\": \"-\" }, { \"name\": \"tile70\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0, 0.7], \"neighbour\": [0] }], \"note\": \"-\" }, { \"name\": \"tile71\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0, 0] }, { \"type\": \"field\", \"center\": [0, 0.7], \"neighbour\": [0] }], \"note\": \"-\" }, { \"name\": \"tile72\", \"matrix\": [ [-1, 0, 0, 0, -1], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [-1, 1, 1, 1, -1] ], \"types\": [{ \"type\": \"city\", \"center\": [0.4, 0.4], \"shield\": true }, { \"type\": \"field\", \"center\": [0, -0.7], \"neighbour\": [0] }], \"note\": \"centru oras\" }]";

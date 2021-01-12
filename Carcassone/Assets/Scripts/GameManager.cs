@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
+using System.Data;
 
 #if ONLINE_MODE
 using ExitGames.Client.Photon;
@@ -89,7 +90,11 @@ public class GameManager
     private string currentHeuristic = "aiReward * aiReward - othersReward";
     public Text heurText;
     public Text placeholder;
-    System.Data.DataTable table = new System.Data.DataTable();
+    public Text suggestedAIMove;
+    private DataTable table = new System.Data.DataTable();
+    private Material selectionMaterial;
+    public Material suggestionMaterial;
+    private GameObject lastSuggested;
 
     // Main functions
     void Start()
@@ -110,7 +115,7 @@ public class GameManager
 #else
         totalNumberOfPlayers = 2;
 #endif
-        gameRunner = new GameRunner(tileComponents, totalNumberOfPlayers);
+        gameRunner = new GameRunner(tileComponents, totalNumberOfPlayers, 1);
         
         // Making name indexes map - assigning player ids in case the player list changes (one of the player exits)
         var playerNames = new List<string>();
@@ -257,6 +262,8 @@ public class GameManager
         {
             DoAIAction();
         }
+
+        UpdateSuggestedAIMove();
     }
 
     void CheckInteractionWithBoard()
@@ -534,6 +541,8 @@ public class GameManager
         {
             DoAIAction();
         }
+
+        UpdateSuggestedAIMove();
     }
 
     // Networking
@@ -724,6 +733,7 @@ public class GameManager
     public void SelectStrategy1()
     {
         AIStrategyIndex = 1;
+        gameRunner.AI.ChangeDifficulty(AIStrategyIndex);
         Strategy1Button.interactable = false;
         Strategy2Button.interactable = true;
         Strategy3Button.interactable = true;
@@ -732,6 +742,7 @@ public class GameManager
     public void SelectStrategy2()
     {
         AIStrategyIndex = 2;
+        gameRunner.AI.ChangeDifficulty(AIStrategyIndex);
         Strategy1Button.interactable = true;
         Strategy2Button.interactable = false;
         Strategy3Button.interactable = true;
@@ -740,6 +751,7 @@ public class GameManager
     public void SelectStrategy3()
     {
         AIStrategyIndex = 3;
+        gameRunner.AI.ChangeDifficulty(AIStrategyIndex);
         Strategy1Button.interactable = true;
         Strategy2Button.interactable = true;
         Strategy3Button.interactable = false;
@@ -776,6 +788,17 @@ public class GameManager
             heurText.text = newHeuristic;
             currentHeuristic = newHeuristic;
             heurText.color = Color.black;
+        }
+    }
+
+    private void UpdateSuggestedAIMove()
+    {
+#if !ONLINE_MODE
+        GetAIMove(out (int, int) suggestedMove, out var suggestedRotation);
+#endif
+        if (suggestedAIMove)
+        {
+            suggestedAIMove.text = "AI Suggestion: " + suggestedMove + ", rotation " + suggestedRotation;
         }
     }
 

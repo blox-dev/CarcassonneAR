@@ -8,7 +8,8 @@ using LibCarcassonne.GameComponents;
 using LibCarcassonne.GameStructures;
 using LibCarcassonne.GameLogic;
 using System.Data;
-
+using UnityEngine.XR.WSA.Input;
+using UnityEngine.EventSystems;
 #if ONLINE_MODE
 using ExitGames.Client.Photon;
 using Photon.Pun;
@@ -42,6 +43,7 @@ public class GameManager
     public GameObject EndGameContent;
     public GameObject returnToMenuButton;
     public GameObject toggleLeaderboardButton;
+    public GameObject AIPredictionScoreText;
 
     // Other objects
     private Camera mCamera;
@@ -146,7 +148,7 @@ public class GameManager
     bool GetAIMove(out (int, int) move, out int rotation)
     {
         var aiPrediction = gameRunner.AI.Predict(currentTile: currentTile);
-        
+        AIPredictionScoreText.GetComponent<Text>().text = "AI Predicted score: " + "?";
         move = ConvertLibCarcassonneCoordsToUnity(aiPrediction.Item1);
         rotation = aiPrediction.Item2;
         return true;
@@ -213,7 +215,10 @@ public class GameManager
 #endif
         if (/*is this player's turn && */Input.GetMouseButtonDown(0))
         {
-            CheckInteractionWithBoard();
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                CheckInteractionWithBoard();
+            }
         }
     }
 

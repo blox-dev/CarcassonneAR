@@ -1,6 +1,7 @@
-﻿//#define ONLINE_MODE
+﻿#define ONLINE_MODE
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -674,11 +675,21 @@ public class GameManager
         returnToMenuButton.SetActive(true);
         toggleLeaderboardButton.SetActive(true);
 
-        //must sort scores before showing
+        var playerPoints = new List<(string, int)>();
         for (var id = 0; id < playerNamesIndexes.Count; ++id)
         {
-            var sgo = Instantiate(PlayerScoreUIPrefab, EndGameContent.transform);
+            
             var player = gameRunner.PlayerManager.GetPlayer(id);
+            playerPoints.Add((playerNamesIndexes[id], player.PlayerPoints));
+        }
+
+        var orderedPlayerPoints = playerPoints.OrderBy(o => - o.Item2).ToList();
+
+
+        //must sort scores before showing
+        for (var id = 0; id < orderedPlayerPoints.Count; ++id)
+        {
+            var sgo = Instantiate(PlayerScoreUIPrefab, EndGameContent.transform);
             string positionText;
             switch (id+1)
             {
@@ -687,7 +698,7 @@ public class GameManager
                 case 3: positionText = "3rd"; break;
                 default: positionText = (id+1).ToString() + "nd"; break;
             }
-            sgo.GetComponent<Text>().text = positionText + ". " + playerNamesIndexes[id] + ". Score: " + player.PlayerPoints + "\n";
+            sgo.GetComponent<Text>().text = positionText + ". " + orderedPlayerPoints[id].Item1 + ". Score: " + orderedPlayerPoints[id].Item2 + "\n";
         }
     }
 

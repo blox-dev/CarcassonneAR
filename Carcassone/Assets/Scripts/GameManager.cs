@@ -127,7 +127,7 @@ public class GameManager
             playerNames.Add(player.NickName);
         }
 #else
-        playerNames.Add("Player");
+        playerNames.Add("AI");
         playerNames.Add("AI");
 #endif
         playerNames.Sort();
@@ -145,9 +145,9 @@ public class GameManager
         }
     }
 
-    bool GetAIMove(out (int, int) move, out int rotation)
+    bool GetAIMove(out (int, int) move, out int rotation, bool thinkReversed=false)
     {
-        var aiPrediction = gameRunner.AI.Predict(currentTile: currentTile);
+        var aiPrediction = gameRunner.AI.Predict(currentTile: currentTile, thinkReversed);
         //AIPredictionScoreText.GetComponent<Text>().text = "AI Predicted score: " + "?";
         move = ConvertLibCarcassonneCoordsToUnity(aiPrediction.Item1);
         rotation = aiPrediction.Item2;
@@ -422,6 +422,14 @@ public class GameManager
         PhotonNetwork.RaiseEvent(EventPlayerExecutedMove, content, raiseEventOptions, SendOptions.SendReliable);
 #else
         OnEvent(content);
+        if (AIStrategyIndex == 1)
+        {
+            SelectStrategy3();
+        }
+        else
+        {
+            SelectStrategy1();
+        }
 #endif
     }
 
@@ -769,16 +777,22 @@ public class GameManager
 
         try
         {
-            var x = Convert.ToInt32(table.Compute(newHeuristic.Replace("aiReward", 0.ToString()).Replace("othersReward", 0.ToString()), ""));
+            var x = Convert.ToInt32(table.Compute(newHeuristic
+                .Replace("aiReward", 0.ToString())
+                .Replace("othersReward", 0.ToString())
+                .Replace("meeple", 0.ToString()), ""));
 
             Func<int, int, int> heuristic = (int aiReward, int othersReward) => {
-                var expression = newHeuristic.Replace("aiReward", aiReward.ToString()).Replace("othersReward", othersReward.ToString());
+                var expression = newHeuristic
+                    .Replace("aiReward", aiReward.ToString())
+                    .Replace("othersReward", othersReward.ToString())
+                    .Replace("meeple", (aiReward > 0 ? 1 : 0).ToString());
                 Debug.Log(expression);
                 return Convert.ToInt32(table.Compute(expression, ""));
             };
             gameRunner.AI.heuristic = heuristic.Invoke;
         }
-        catch (Exception)
+        catch (Exception E)
         {
             failed = true;
         }
@@ -799,7 +813,7 @@ public class GameManager
     private void UpdateSuggestedAIMove()
     {
 #if !ONLINE_MODE
-        GetAIMove(out (int, int) suggestedMove, out var suggestedRotation);
+        GetAIMove(out (int, int) suggestedMove, out var suggestedRotation, true);
         if (suggestedAIMove)
         {
             suggestedAIMove.text = "AI Suggestion: " + suggestedMove + ", rotation " + suggestedRotation;

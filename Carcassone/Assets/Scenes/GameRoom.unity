@@ -514,7 +514,7 @@ PrefabInstance:
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.000019073486
+      value: -0.000005436149
       objectReference: {fileID: 0}
     - target: {fileID: 617726924693412898, guid: ca001aedf57fdc14983f97bdd0cb251d,
         type: 3}
@@ -1806,7 +1806,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Strategy 1: Random'
+  m_Text: 'Strategy 1: WheelOfFortune'
 --- !u!222 &1498110246
 CanvasRenderer:
   m_ObjectHideFlags: 0

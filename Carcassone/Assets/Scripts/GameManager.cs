@@ -1,4 +1,4 @@
-﻿#define ONLINE_MODE
+﻿//#define ONLINE_MODE
 
 using System;
 using System.Linq;
@@ -86,7 +86,7 @@ public class GameManager
     const byte EventPlayerExecutedMove = 1;
     
     // AI
-    private int AIStrategyIndex = 1;
+    private int AIStrategyIndex = 2;
     public Button Strategy1Button;
     public Button Strategy2Button;
     public Button Strategy3Button;
@@ -128,8 +128,9 @@ public class GameManager
             playerNames.Add(player.NickName);
         }
 #else
-        playerNames.Add("AI");
-        playerNames.Add("AI");
+        //playerNames.Add("AI_02");
+        playerNames.Add("Player");
+        playerNames.Add("AI_03");
 #endif
         playerNames.Sort();
         foreach (var pName in playerNames)
@@ -264,7 +265,7 @@ public class GameManager
         currentTileObjectRef = null;
         
         // Do AI move
-        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == "AI")
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers].StartsWith("AI"))
         {
             DoAIAction();
         }
@@ -423,13 +424,13 @@ public class GameManager
         PhotonNetwork.RaiseEvent(EventPlayerExecutedMove, content, raiseEventOptions, SendOptions.SendReliable);
 #else
         OnEvent(content);
-        if (AIStrategyIndex == 1)
+        if (AIStrategyIndex == 2)
         {
             SelectStrategy3();
         }
         else
         {
-            SelectStrategy1();
+            SelectStrategy2();
         }
 #endif
     }
@@ -551,7 +552,7 @@ public class GameManager
         }
 
         // 6. If next player is AI, get an AI move
-        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers] == "AI")
+        if (playerNamesIndexes[currentTurn % totalNumberOfPlayers].StartsWith("AI"))
         {
             DoAIAction();
         }
